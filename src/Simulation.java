@@ -7,7 +7,7 @@ public class Simulation {
     }
 
     public void run(){
-        World world = new World(5);
+        World world = new World(10);
         for (int i = 0; i < generations; i++) {
             world.behave();
         }
