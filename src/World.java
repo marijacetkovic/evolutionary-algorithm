@@ -1,8 +1,9 @@
 import java.util.*;
+import java.util.function.Predicate;
 
 public class World {
-    private final int NUM_CREATURES = 1;
-    private final int NUM_FOOD = 10;
+    private final int NUM_CREATURES = 10;
+    private final int NUM_FOOD = 0;
     private int[][] world;
     private ArrayList<Creature> population;
     private int size;
@@ -34,8 +35,11 @@ public class World {
 
     private void spawnCreatures(){
         for (int k = 0; k < NUM_CREATURES; k++) {
-            int i = r.nextInt(size);
-            int j = r.nextInt(size);
+            int i,j;
+            do{
+                i = r.nextInt(size);
+                j = r.nextInt(size);}
+            while (world[i][j]!=-1);
             world[i][j]=k;
             population.add(new Creature(k,i,j));
         }
@@ -72,7 +76,17 @@ public class World {
         world[creature.getI()][creature.getJ()] = -1;
         creature.updatePosition(i,j);
     }
-    public boolean checkAdjacentTile(Creature c, int target){
+    public Creature checkEligibleMate(Creature c){
+        int id = findEligibleMate(c, x->x>=0);
+        return findById(id);
+    }
+    public boolean checkAvailableFood(Creature c){
+        return checkAdjacentTile(c, x->x==Config.FOOD_CODE,true);
+    }
+    public boolean checkAvailableMove(Creature c){
+        return checkAdjacentTile(c, x->x==Config.DEFAULT_CODE,true);
+    }
+    private int findEligibleMate(Creature c, Predicate<Integer> condition){
         List<int[]> directions =  Arrays.asList(
                 new int[]{1, 0},
                 new int[]{0, 1},
@@ -85,8 +99,33 @@ public class World {
         for (int[] dir : directions) {
             int newRow = i + dir[0];
             int newCol = j + dir[1];
-            if (isWithinBounds(newRow, newCol) && world[newRow][newCol] == target) {
-                moveCreature(c,newRow,newCol);
+            if (isWithinBounds(newRow, newCol) && condition.test(world[newRow][newCol])) {
+                return world[newRow][newCol];
+            }
+        }
+        return -1;
+    }
+    private Creature findById(int id){
+        for (Creature c:population) {
+            if (c.getId()==id) return c;
+        }
+        return null;
+    }
+    private boolean checkAdjacentTile(Creature c, Predicate<Integer> condition, boolean move){
+        List<int[]> directions =  Arrays.asList(
+                new int[]{1, 0},
+                new int[]{0, 1},
+                new int[]{0, -1},
+                new int[]{-1, 0}
+        );
+        int i = c.getI();
+        int j = c.getJ();
+        Collections.shuffle(directions, r);
+        for (int[] dir : directions) {
+            int newRow = i + dir[0];
+            int newCol = j + dir[1];
+            if (isWithinBounds(newRow, newCol) && condition.test(world[newRow][newCol])) {
+                if(move) moveCreature(c,newRow,newCol);
                 return true;
             }
         }

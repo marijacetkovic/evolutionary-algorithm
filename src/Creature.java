@@ -6,25 +6,33 @@ public class Creature {
     private int i;
     private int j;
     private Random r;
+    private boolean wantToMate;
     public Creature(int id, int i, int j){
         this.id = id;
         this.i = i;
         this.j = j;
         this.r = new Random();
+        wantToMate = false;
         System.out.println("Spawned a creature at positions " +i+","+j);
     }
 
     public void takeAction(EventManager eventManager, World world) {
-        boolean ate = world.checkAdjacentTile(this,Config.FOOD_CODE);
-        if(ate){
-            System.out.println("Ate at"+i+" "+j);
+        //boolean ate = world.checkAvailableFood(this);
+        wantToMate = true;
+        Creature foundMate = world.checkEligibleMate(this);
+        if(foundMate!=null&&foundMate.wantsToMate()&&wantToMate){
+            System.out.println("Creature "+id+" found mate "+foundMate.getId()+" at"+i+" "+j);
         }
         else{
-            world.checkAdjacentTile(this,Config.DEFAULT_CODE);
-            System.out.println("Moved to "+i+" "+j);
+            world.checkAvailableMove(this);
+            System.out.println("Creature "+id+" moved to "+i+" "+j);
         }
 
 
+    }
+
+    public boolean wantsToMate(){
+        return wantToMate;
     }
 
     public int getId() {
