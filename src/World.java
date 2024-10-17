@@ -3,6 +3,7 @@ import java.util.function.Predicate;
 
 public class World {
     private final int NUM_CREATURES = 10;
+    private final int MAX_CREATURES = 20;
     private final int NUM_FOOD = 0;
     private int[][] world;
     private ArrayList<Creature> population;
@@ -10,11 +11,13 @@ public class World {
     private Random r = new Random();
     private List<int[]> directions;
     private final EventManager eventManager;
+    private int lastId;
     public World(int n){
         this.size = n;
         this.world = new int[n][n];
         this.population = new ArrayList<>();
-        this.eventManager = new EventManager();
+        this.eventManager = new EventManager(this);
+        this.lastId = 0;
         this.directions = Arrays.asList(
                 new int[]{1, 0},
                 new int[]{0, 1},
@@ -35,14 +38,23 @@ public class World {
 
     private void spawnCreatures(){
         for (int k = 0; k < NUM_CREATURES; k++) {
-            int i,j;
-            do{
-                i = r.nextInt(size);
-                j = r.nextInt(size);}
-            while (world[i][j]!=-1);
-            world[i][j]=k;
-            population.add(new Creature(k,i,j));
+            spawnCreature();
         }
+    }
+
+    public Creature spawnCreature(){
+        int i,j;
+        if(lastId==MAX_CREATURES) return null;
+        do{
+            i = r.nextInt(size);
+            j = r.nextInt(size);}
+        while (world[i][j]!=-1);
+        Creature c = new Creature(lastId,i,j);
+        world[i][j] = lastId;
+        //population.add(new Creature(lastId,i,j));
+        population.add(c);
+        lastId++;
+        return c;
     }
 
     private void spawnFood(){
@@ -59,6 +71,7 @@ public class World {
         for (Creature c: population) {
             c.takeAction(eventManager,this);
         }
+        eventManager.process();
         printMatrix(world);
     }
     public void printMatrix(int[][] matrix) {

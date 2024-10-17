@@ -5,5 +5,14 @@ public class BreedingEvent extends Event{
         name = "breed";
         parentX = x;
         parentY = y;
+        System.out.println("New breeding event between" +x.getId()+ " and "+y.getId());
+    }
+
+    public Creature getParentX() {
+        return parentX;
+    }
+
+    public Creature getParentY() {
+        return parentY;
     }
 }

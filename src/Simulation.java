@@ -7,12 +7,10 @@ public class Simulation {
     }
 
     public void run(){
-        World world = new World(10);
+        World world = new World(5);
         for (int i = 0; i < generations; i++) {
             world.behave();
-            if (generations==37){
-                System.out.println("manja");
-            }
+            System.out.println("Generation "+i);
         }
     }
 }
