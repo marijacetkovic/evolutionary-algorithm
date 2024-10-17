@@ -7,7 +7,9 @@ public class Creature {
     private int j;
     private Random r;
     private boolean wantToMate;
+    private boolean eatsFood;
     public Creature potentialMate;
+    private int calories;
     public Creature(int id, int i, int j){
         this.id = id;
         this.i = i;
@@ -15,22 +17,28 @@ public class Creature {
         this.r = new Random();
         wantToMate = false;
         potentialMate = null;
+        eatsFood = true;
         System.out.println("Spawned a creature at positions " +i+","+j);
     }
 
     public void takeAction(EventManager eventManager, World world) {
-        //boolean ate = world.checkAvailableFood(this);
-        wantToMate = true;
-        Creature foundMate = world.checkEligibleMate(this);
-        this.potentialMate = foundMate;
-        if(foundMate!=null && foundMate.wantsToMate() && foundMate.potentialMate!=null && foundMate.potentialMate.getId()==id){
-            System.out.println("Creature "+id+" found mate "+foundMate.getId()+" at"+i+" "+j);
-            eventManager.enqueue(new BreedingEvent(this,potentialMate));
-            potentialMate = null;
-            wantToMate = false;
+        int[] foodLocation = world.checkAvailableFood(this);
+        if(foodLocation!=null&&eatsFood){
+            eatsFood = false;
+            eventManager.enqueue(new EatingEvent(this, foodLocation));
         }
+//        wantToMate = true;
+//        Creature foundMate = world.checkEligibleMate(this);
+//        this.potentialMate = foundMate;
+//        if(foundMate!=null && foundMate.wantsToMate() && foundMate.potentialMate!=null && foundMate.potentialMate.getId()==id){
+//            System.out.println("Creature "+id+" found mate "+foundMate.getId()+" at"+i+" "+j);
+//            eventManager.enqueue(new BreedingEvent(this,potentialMate));
+//            potentialMate = null;
+//            wantToMate = false;
+//        }
         else{
             world.checkAvailableMove(this);
+            eatsFood = true;
             System.out.println("Creature "+id+" moved to "+i+" "+j);
         }
     }

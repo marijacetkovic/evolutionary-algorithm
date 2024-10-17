@@ -19,6 +19,7 @@ public class EventManager {
         while(!events.isEmpty()){
             Event e = events.poll();
             if (e.name=="breed") processBreed((BreedingEvent) e);
+            else if (e.name=="eat") processEat((EatingEvent) e);
         }
     }
 
@@ -30,5 +31,9 @@ public class EventManager {
         else{
             System.out.println("No child could be created.");
         }
+    }
+
+    public void processEat(EatingEvent e){
+        world.moveCreature(e.c, e.foodLocation[0],e.foodLocation[1]);
     }
 }

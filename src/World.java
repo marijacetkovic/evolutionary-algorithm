@@ -2,11 +2,12 @@ import java.util.*;
 import java.util.function.Predicate;
 
 public class World {
-    private final int NUM_CREATURES = 10;
-    private final int MAX_CREATURES = 20;
-    private final int NUM_FOOD = 0;
+    private final int NUM_CREATURES = 1;
+    private final int MAX_CREATURES = 1;
+    private final int NUM_FOOD = 10;
     private int[][] world;
     private ArrayList<Creature> population;
+    private ArrayList<Food> food;
     private int size;
     private Random r = new Random();
     private List<int[]> directions;
@@ -16,6 +17,7 @@ public class World {
         this.size = n;
         this.world = new int[n][n];
         this.population = new ArrayList<>();
+        this.food = new ArrayList<>();
         this.eventManager = new EventManager(this);
         this.lastId = 0;
         this.directions = Arrays.asList(
@@ -64,15 +66,17 @@ public class World {
                 i = r.nextInt(size);
                 j = r.nextInt(size);}
             while (world[i][j]!=-1);
+            food.add(new Food(i,j,100));
             world[i][j]=-2;
         }
     }
     public void behave(){
+        printMatrix(world);
+
         for (Creature c: population) {
             c.takeAction(eventManager,this);
         }
         eventManager.process();
-        printMatrix(world);
     }
     public void printMatrix(int[][] matrix) {
         for (int i = 0; i < matrix.length; i++) {
@@ -84,19 +88,19 @@ public class World {
         System.out.println("-----------------------------------------");
     }
 
-    private void moveCreature(Creature creature, int i, int j) {
+    public void moveCreature(Creature creature, int i, int j) {
         world[i][j] = creature.getId();
         world[creature.getI()][creature.getJ()] = -1;
         creature.updatePosition(i,j);
     }
     public Creature checkEligibleMate(Creature c){
         int id = findEligibleMate(c, x->x>=0);
-        return findById(id);
+        return findCreatureById(id);
     }
-    public boolean checkAvailableFood(Creature c){
-        return checkAdjacentTile(c, x->x==Config.FOOD_CODE,true);
+    public int[] checkAvailableFood(Creature c){
+        return checkAdjacentTile(c, x->x==Config.FOOD_CODE,false);
     }
-    public boolean checkAvailableMove(Creature c){
+    public int[] checkAvailableMove(Creature c){
         return checkAdjacentTile(c, x->x==Config.DEFAULT_CODE,true);
     }
     private int findEligibleMate(Creature c, Predicate<Integer> condition){
@@ -118,13 +122,13 @@ public class World {
         }
         return -1;
     }
-    private Creature findById(int id){
+    private Creature findCreatureById(int id){
         for (Creature c:population) {
             if (c.getId()==id) return c;
         }
         return null;
     }
-    private boolean checkAdjacentTile(Creature c, Predicate<Integer> condition, boolean move){
+    private int[] checkAdjacentTile(Creature c, Predicate<Integer> condition, boolean move){
         List<int[]> directions =  Arrays.asList(
                 new int[]{1, 0},
                 new int[]{0, 1},
@@ -139,10 +143,10 @@ public class World {
             int newCol = j + dir[1];
             if (isWithinBounds(newRow, newCol) && condition.test(world[newRow][newCol])) {
                 if(move) moveCreature(c,newRow,newCol);
-                return true;
+                return new int[]{newRow,newCol};
             }
         }
-        return false;
+        return null;
     }
     public boolean isWithinBounds(int row, int col) {
         return row >= 0 && row < world.length && col >= 0 && col < world[0].length;
