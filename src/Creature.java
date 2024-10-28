@@ -23,19 +23,19 @@ public class Creature {
 
     public void takeAction(EventManager eventManager, World world) {
         int[] foodLocation = world.checkAvailableFood(this);
-        if(foodLocation!=null&&eatsFood){
-            eatsFood = false;
-            eventManager.enqueue(new EatingEvent(this, foodLocation));
-        }
-//        wantToMate = true;
-//        Creature foundMate = world.checkEligibleMate(this);
-//        this.potentialMate = foundMate;
-//        if(foundMate!=null && foundMate.wantsToMate() && foundMate.potentialMate!=null && foundMate.potentialMate.getId()==id){
-//            System.out.println("Creature "+id+" found mate "+foundMate.getId()+" at"+i+" "+j);
-//            eventManager.enqueue(new BreedingEvent(this,potentialMate));
-//            potentialMate = null;
-//            wantToMate = false;
+//        if(foodLocation!=null&&eatsFood){
+//            eatsFood = false;
+//            eventManager.enqueue(new EatingEvent(this, foodLocation));
 //        }
+        wantToMate = true;
+        Creature foundMate = world.checkEligibleMate(this).get(0);
+        this.potentialMate = foundMate;
+        if(foundMate!=null && foundMate.wantsToMate() && foundMate.potentialMate!=null && foundMate.potentialMate.getId()==id){
+            System.out.println("Creature "+id+" found mate "+foundMate.getId()+" at"+i+" "+j);
+            eventManager.enqueue(new BreedingEvent(this,potentialMate));
+            potentialMate = null;
+            wantToMate = false;
+        }
         else{
             world.checkAvailableMove(this);
             eatsFood = true;

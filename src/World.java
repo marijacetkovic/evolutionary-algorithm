@@ -2,10 +2,10 @@ import java.util.*;
 import java.util.function.Predicate;
 
 public class World {
-    private final int NUM_CREATURES = 1;
-    private final int MAX_CREATURES = 1;
+    private final int NUM_CREATURES = 15;
+    private final int MAX_CREATURES = 15;
     private final int NUM_FOOD = 10;
-    private int[][] world;
+    private List<Integer>[][] world;
     private ArrayList<Creature> population;
     private ArrayList<Food> food;
     private int size;
@@ -15,7 +15,7 @@ public class World {
     private int lastId;
     public World(int n){
         this.size = n;
-        this.world = new int[n][n];
+        this.world = new ArrayList[n][n];
         this.population = new ArrayList<>();
         this.food = new ArrayList<>();
         this.eventManager = new EventManager(this);
@@ -34,7 +34,9 @@ public class World {
 
     private void init(){
         for (int i = 0; i < size; i++) {
-            Arrays.fill(world[i],-1); // empty tile
+            for (int j = 0; j < world[i].length; j++) {
+                world[i][j] = new ArrayList<>();
+            }
         }
     }
 
@@ -49,10 +51,11 @@ public class World {
         if(lastId==MAX_CREATURES) return null;
         do{
             i = r.nextInt(size);
-            j = r.nextInt(size);}
-        while (world[i][j]!=-1);
+            j = r.nextInt(size);
+        }
+        while (!world[i][j].isEmpty());
         Creature c = new Creature(lastId,i,j);
-        world[i][j] = lastId;
+        world[i][j].add(lastId);
         //population.add(new Creature(lastId,i,j));
         population.add(c);
         lastId++;
@@ -65,9 +68,9 @@ public class World {
             do{
                 i = r.nextInt(size);
                 j = r.nextInt(size);}
-            while (world[i][j]!=-1);
+            while (!world[i][j].isEmpty());
             food.add(new Food(i,j,100));
-            world[i][j]=-2;
+            world[i][j].add(-2);
         }
     }
     public void behave(){
@@ -78,24 +81,32 @@ public class World {
         }
         eventManager.process();
     }
-    public void printMatrix(int[][] matrix) {
+    public void printMatrix(List<Integer>[][] matrix) {
+        System.out.println("----------------------");
         for (int i = 0; i < matrix.length; i++) {
+            System.out.print("| ");
             for (int j = 0; j < matrix[i].length; j++) {
-                System.out.print(matrix[i][j] + " ");
+                if (matrix[i][j].isEmpty()) {
+                    System.out.print("     | ");
+                } else {
+                    System.out.print(matrix[i][j] + " | ");
+                }
             }
             System.out.println();
+            System.out.println("----------------------");
         }
-        System.out.println("-----------------------------------------");
     }
 
     public void moveCreature(Creature creature, int i, int j) {
-        world[i][j] = creature.getId();
-        world[creature.getI()][creature.getJ()] = -1;
+        world[i][j].clear();
+        world[i][j].add(creature.getId());
+        world[creature.getI()][creature.getJ()].clear();
+        world[creature.getI()][creature.getJ()].add(-1);
         creature.updatePosition(i,j);
     }
-    public Creature checkEligibleMate(Creature c){
-        int id = findEligibleMate(c, x->x>=0);
-        return findCreatureById(id);
+    public List<Creature> checkEligibleMate(Creature c){
+        List<Integer> ids = findEligibleMates(c, x->x>=0);
+        return findCreatureById(ids);
     }
     public int[] checkAvailableFood(Creature c){
         return checkAdjacentTile(c, x->x==Config.FOOD_CODE,false);
@@ -103,7 +114,7 @@ public class World {
     public int[] checkAvailableMove(Creature c){
         return checkAdjacentTile(c, x->x==Config.DEFAULT_CODE,true);
     }
-    private int findEligibleMate(Creature c, Predicate<Integer> condition){
+    private List<Integer> findEligibleMates(Creature c, Predicate<Integer> condition){
         List<int[]> directions =  Arrays.asList(
                 new int[]{1, 0},
                 new int[]{0, 1},
@@ -116,17 +127,19 @@ public class World {
         for (int[] dir : directions) {
             int newRow = i + dir[0];
             int newCol = j + dir[1];
-            if (isWithinBounds(newRow, newCol) && condition.test(world[newRow][newCol])) {
+            if (isWithinBounds(newRow, newCol) && condition.test(world[newRow][newCol].get(0))) {
                 return world[newRow][newCol];
             }
         }
-        return -1;
-    }
-    private Creature findCreatureById(int id){
-        for (Creature c:population) {
-            if (c.getId()==id) return c;
-        }
         return null;
+    }
+    private List<Creature> findCreatureById(List<Integer> id){
+        List<Creature> res = new ArrayList<>();
+        if(id==null) {res.add(null); return res;}
+        for (Creature c:population) {
+            if (id.contains(c.getId())) res.add(c);
+        }
+        return res;
     }
     private int[] checkAdjacentTile(Creature c, Predicate<Integer> condition, boolean move){
         List<int[]> directions =  Arrays.asList(
@@ -141,7 +154,7 @@ public class World {
         for (int[] dir : directions) {
             int newRow = i + dir[0];
             int newCol = j + dir[1];
-            if (isWithinBounds(newRow, newCol) && condition.test(world[newRow][newCol])) {
+            if (isWithinBounds(newRow, newCol)) {
                 if(move) moveCreature(c,newRow,newCol);
                 return new int[]{newRow,newCol};
             }
@@ -149,10 +162,10 @@ public class World {
         return null;
     }
     public boolean isWithinBounds(int row, int col) {
-        return row >= 0 && row < world.length && col >= 0 && col < world[0].length;
+        return row >= 0 && row < size && col >= 0 && col < size;
     }
     public boolean isAvailableTile(int row, int col) {
-        return row >= 0 && row < world.length && col >= 0 && col < world[0].length && world[row][col] == -1;
+        return row >= 0 && row < world.length && col >= 0 && col < world[0].length && world[row][col].isEmpty();
     }
 
 
