@@ -13,7 +13,7 @@ public class GA {
         return gene;
     }
     public static int crossover(Creature parentX, Creature parentY) {
-        return (parentX.getGene() + parentY.getGene()) / 2;
+        return (parentX.getGene().getValue() + parentY.getGene().getValue()) / 2;
     }
 
     public static int mutate(int gene) {

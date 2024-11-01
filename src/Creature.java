@@ -1,7 +1,7 @@
 import java.util.*;
 
 public class Creature {
-    private int gene;
+    private Gene gene;
     private int id;
     //position within the world
     private int i;
@@ -23,7 +23,7 @@ public class Creature {
         this.wantToMate = false;
         this.mate = null;
         this.eatsFood = true;
-        this.gene = r.nextInt(100);
+        this.gene = new Gene();
         System.out.println("Spawned a creature at positions " +i+","+j);
     }
 
@@ -45,7 +45,8 @@ public class Creature {
         }
         else{
             System.out.println("Creature " + id + " found mate " + mate.getId() + " at " + i + " " + j);
-            eventManager.publish(new BreedingEvent(this, mate,world));
+            eventManager.publish(new BreedingEvent(this, mate, world));
+            mate.resetMates();
             potentialMates = null;
             mate = null;
         }
@@ -54,6 +55,8 @@ public class Creature {
     private void eatingAction(EventManager eventManager, World world){
         if(world.world[i][j].contains(Config.FOOD_CODE) && eatsFood){
             eatsFood = false;
+            //this should be fixed in future - mark food as unavailable until the event is processed or sth
+            world.world[i][j].remove((Integer) Config.FOOD_CODE);
             eventManager.publish(new EatingEvent(this, i,j, world));
         }
     }
@@ -72,7 +75,9 @@ public class Creature {
         }
         return false;
     }
-
+    public void resetMates(){
+        potentialMates = null;
+    }
     public boolean hasMate(Integer id){
         if (potentialMates == null) return false;
         for (Creature c: potentialMates) {
@@ -97,7 +102,7 @@ public class Creature {
         return j;
     }
 
-    public int getGene(){
+    public Gene getGene(){
         return gene;
     }
 
@@ -113,7 +118,7 @@ public class Creature {
         this.j = j;
     }
 
-    public void setGene(int gene) {
-        this.gene = gene;
+    public void setGene(int value) {
+        this.gene.setGene(value);
     }
 }

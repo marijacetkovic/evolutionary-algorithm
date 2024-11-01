@@ -25,10 +25,10 @@ public class BreedingEvent extends Event{
 
         if(child!=null){
             child.setGene(GA.apply(parentX,parentY));
-            System.out.println("Creature "+ parentY.getId()+" creature "+parentY.getId()+" created "+child.getId());
+            System.out.println("Creature "+ parentX.getId()+" creature "+parentY.getId()+" created "+child.getId());
         }
         else{
-            //System.out.println("No child could be created.");
+            System.out.println("No child could be created.");
         }
     }
 
