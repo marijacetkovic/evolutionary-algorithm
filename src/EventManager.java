@@ -11,7 +11,7 @@ public class EventManager {
         this.world = world;
     }
 
-    public void enqueue(Event e){
+    public void publish(Event e){
         events.add(e);
     }
 

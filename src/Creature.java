@@ -1,6 +1,7 @@
 import java.util.*;
 
 public class Creature {
+    private int gene;
     private int id;
     //position within the world
     private int i;
@@ -19,9 +20,10 @@ public class Creature {
         this.i = i;
         this.j = j;
         this.r = new Random();
-        wantToMate = false;
-        mate = null;
-        eatsFood = true;
+        this.wantToMate = false;
+        this.mate = null;
+        this.eatsFood = true;
+        this.gene = r.nextInt(100);
         System.out.println("Spawned a creature at positions " +i+","+j);
     }
 
@@ -43,7 +45,7 @@ public class Creature {
         }
         else{
             System.out.println("Creature " + id + " found mate " + mate.getId() + " at " + i + " " + j);
-            eventManager.enqueue(new BreedingEvent(this, mate,world));
+            eventManager.publish(new BreedingEvent(this, mate,world));
             potentialMates = null;
             mate = null;
         }
@@ -52,7 +54,7 @@ public class Creature {
     private void eatingAction(EventManager eventManager, World world){
         if(world.world[i][j].contains(Config.FOOD_CODE) && eatsFood){
             eatsFood = false;
-            eventManager.enqueue(new EatingEvent(this, i,j, world));
+            eventManager.publish(new EatingEvent(this, i,j, world));
         }
     }
 
@@ -95,6 +97,10 @@ public class Creature {
         return j;
     }
 
+    public int getGene(){
+        return gene;
+    }
+
     private void eat(World world){
 
     }
@@ -105,5 +111,9 @@ public class Creature {
     public void updatePosition(int i, int j){
         this.i = i;
         this.j = j;
+    }
+
+    public void setGene(int gene) {
+        this.gene = gene;
     }
 }

@@ -11,7 +11,6 @@ public class BreedingEvent extends Event{
     }
 
 
-
     public Creature getParentX() {
         return parentX;
     }
@@ -23,11 +22,14 @@ public class BreedingEvent extends Event{
     @Override
     public void process() {
         Creature child = w.spawnCreature();
+
         if(child!=null){
+            child.setGene(GA.apply(parentX,parentY));
             System.out.println("Creature "+ parentY.getId()+" creature "+parentY.getId()+" created "+child.getId());
         }
         else{
             //System.out.println("No child could be created.");
         }
     }
+
 }
