@@ -2,10 +2,10 @@ import java.util.*;
 import java.util.function.Predicate;
 
 public class World {
-    private final int NUM_CREATURES = 15;
+    private final int NUM_CREATURES = 10;
     private final int MAX_CREATURES = 15;
     private final int NUM_FOOD = 10;
-    private List<Integer>[][] world;
+    public List<Integer>[][] world;
     private ArrayList<Creature> population;
     private ArrayList<Food> food;
     private int size;
@@ -49,11 +49,11 @@ public class World {
     public Creature spawnCreature(){
         int i,j;
         if(lastId==MAX_CREATURES) return null;
-        do{
+        //do{
             i = r.nextInt(size);
             j = r.nextInt(size);
-        }
-        while (!world[i][j].isEmpty());
+        //}
+        //while (!world[i][j].isEmpty());
         Creature c = new Creature(lastId,i,j);
         world[i][j].add(lastId);
         //population.add(new Creature(lastId,i,j));
@@ -68,7 +68,7 @@ public class World {
             do{
                 i = r.nextInt(size);
                 j = r.nextInt(size);}
-            while (!world[i][j].isEmpty());
+            while (world[i][j].contains(-2));
             food.add(new Food(i,j,100));
             world[i][j].add(-2);
         }
@@ -79,29 +79,31 @@ public class World {
         for (Creature c: population) {
             c.takeAction(eventManager,this);
         }
+        for (Creature c: population){
+            checkAvailableMove(c);
+        }
         eventManager.process();
     }
     public void printMatrix(List<Integer>[][] matrix) {
-        System.out.println("----------------------");
+        System.out.println("-----------------------------------");
         for (int i = 0; i < matrix.length; i++) {
             System.out.print("| ");
             for (int j = 0; j < matrix[i].length; j++) {
                 if (matrix[i][j].isEmpty()) {
-                    System.out.print("     | ");
+                    System.out.print("    | ");
                 } else {
                     System.out.print(matrix[i][j] + " | ");
                 }
             }
             System.out.println();
-            System.out.println("----------------------");
+            System.out.println("---------------------------------");
         }
     }
 
     public void moveCreature(Creature creature, int i, int j) {
-        world[i][j].clear();
         world[i][j].add(creature.getId());
-        world[creature.getI()][creature.getJ()].clear();
-        world[creature.getI()][creature.getJ()].add(-1);
+        world[creature.getI()][creature.getJ()].remove((Integer) creature.getId());
+        System.out.println("Creature " + creature.getId() + " moved to " + i + " " + j);
         creature.updatePosition(i,j);
     }
     public List<Creature> checkEligibleMate(Creature c){
@@ -113,6 +115,11 @@ public class World {
     }
     public int[] checkAvailableMove(Creature c){
         return checkAdjacentTile(c, x->x==Config.DEFAULT_CODE,true);
+    }
+    public List<Creature> checkMateTile(Creature c){
+        List<Integer> ids = world[c.getI()][c.getJ()].stream().filter(x->x>=0&&x!=c.getId()).toList();
+        return findCreatureById(ids);
+
     }
     private List<Integer> findEligibleMates(Creature c, Predicate<Integer> condition){
         List<int[]> directions =  Arrays.asList(
@@ -135,7 +142,7 @@ public class World {
     }
     private List<Creature> findCreatureById(List<Integer> id){
         List<Creature> res = new ArrayList<>();
-        if(id==null) {res.add(null); return res;}
+        if(id==null) {return res;}
         for (Creature c:population) {
             if (id.contains(c.getId())) res.add(c);
         }

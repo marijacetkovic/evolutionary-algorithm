@@ -1,5 +1,6 @@
 import java.util.List;
 
-public class Event {
+public abstract class Event {
     String name;
+    public abstract void process();
 }

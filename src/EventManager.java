@@ -18,22 +18,7 @@ public class EventManager {
     public void process(){
         while(!events.isEmpty()){
             Event e = events.poll();
-            if (e.name=="breed") processBreed((BreedingEvent) e);
-            else if (e.name=="eat") processEat((EatingEvent) e);
+            e.process();
         }
-    }
-
-    public void processBreed(BreedingEvent e){
-        Creature child = world.spawnCreature();
-        if(child!=null){
-        System.out.println("Creature "+ e.getParentX().getId()+" creature "+e.getParentY().getId()+" created "+child.getId());
-        }
-        else{
-            System.out.println("No child could be created.");
-        }
-    }
-
-    public void processEat(EatingEvent e){
-        world.moveCreature(e.c, e.foodLocation[0],e.foodLocation[1]);
     }
 }

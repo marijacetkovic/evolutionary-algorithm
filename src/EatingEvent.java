@@ -1,10 +1,19 @@
 public class EatingEvent extends Event{
-    public int[] foodLocation;
+    private int i;
+    private int j;
     public Creature c;
-    public EatingEvent(Creature c, int[] foodLocation){
+    private World w;
+    public EatingEvent(Creature c, int i, int j, World w){
         name = "eat";
         this.c = c;
-        this.foodLocation = foodLocation;
-        System.out.println("New eating event by" +c.getId()+"at "+foodLocation[0]+" "+foodLocation[1]);
+        this.i = i;
+        this.j = j;
+        this.w = w;
+        System.out.println("New eating event by" +c.getId()+"at "+i+" "+j);
+    }
+
+    @Override
+    public void process() {
+        w.world[i][j].remove((Integer) Config.FOOD_CODE);
     }
 }
