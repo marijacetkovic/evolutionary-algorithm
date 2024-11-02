@@ -9,7 +9,8 @@ public class Simulation {
     public void run(){
         World world = new World(5);
         for (int i = 0; i < generations; i++) {
-            world.behave();
+            boolean alive = world.behave();
+            if(!alive) break;
             System.out.println("Generation "+i);
         }
     }

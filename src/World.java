@@ -54,7 +54,7 @@ public class World {
             j = r.nextInt(size);
         //}
         //while (!world[i][j].isEmpty());
-        Creature c = new Creature(lastId,i,j);
+        Creature c = new Creature(lastId,i,j,-2);
         world[i][j].add(lastId);
         //population.add(new Creature(lastId,i,j));
         population.add(c);
@@ -69,20 +69,33 @@ public class World {
                 i = r.nextInt(size);
                 j = r.nextInt(size);}
             while (world[i][j].contains(-2));
-            food.add(new Food(i,j,100));
+            food.add(new Food(i,j,100,FoodType.MEAT));
             world[i][j].add(-2);
         }
     }
-    public void behave(){
+    public boolean behave(){
+
         printMatrix(world);
 
         for (Creature c: population) {
             c.takeAction(eventManager,this);
         }
-        for (Creature c: population){
+
+        List<Creature> toRemove = new ArrayList<>();
+
+        for (Creature c : population) {
             checkAvailableMove(c);
+            boolean dead = c.checkHealth(this);
+            if (dead) toRemove.add(c);
+        }
+
+        population.removeAll(toRemove);
+        if(population.isEmpty()) {
+            System.out.println("Whole generation died.");
+            return false;
         }
         eventManager.process();
+        return true;
     }
     public void printMatrix(List<Integer>[][] matrix) {
         System.out.println("-----------------------------------");
@@ -102,19 +115,20 @@ public class World {
 
     public void moveCreature(Creature creature, int i, int j) {
         world[i][j].add(creature.getId());
-        world[creature.getI()][creature.getJ()].remove((Integer) creature.getId());
+        remove(creature.getI(),creature.getJ(),creature.getId());
         System.out.println("Creature " + creature.getId() + " moved to " + i + " " + j);
         creature.updatePosition(i,j);
+    }
+
+    public void remove(int i, int j, int type){
+        world[i][j].remove((Integer) type);
     }
     public List<Creature> checkEligibleMate(Creature c){
         List<Integer> ids = findEligibleMates(c, x->x>=0);
         return findCreatureById(ids);
     }
-    public int[] checkAvailableFood(Creature c){
-        return checkAdjacentTile(c, x->x==Config.FOOD_CODE,false);
-    }
     public int[] checkAvailableMove(Creature c){
-        return checkAdjacentTile(c, x->x==Config.DEFAULT_CODE,true);
+        return checkAdjacentTile(c);
     }
     public List<Creature> checkMateTile(Creature c){
         List<Integer> ids = world[c.getI()][c.getJ()].stream().filter(x->x>=0&&x!=c.getId()).toList();
@@ -148,7 +162,7 @@ public class World {
         }
         return res;
     }
-    private int[] checkAdjacentTile(Creature c, Predicate<Integer> condition, boolean move){
+    private int[] checkAdjacentTile(Creature c){
         List<int[]> directions =  Arrays.asList(
                 new int[]{1, 0},
                 new int[]{0, 1},
@@ -162,7 +176,7 @@ public class World {
             int newRow = i + dir[0];
             int newCol = j + dir[1];
             if (isWithinBounds(newRow, newCol)) {
-                if(move) moveCreature(c,newRow,newCol);
+                moveCreature(c,newRow,newCol);
                 return new int[]{newRow,newCol};
             }
         }
@@ -171,9 +185,9 @@ public class World {
     public boolean isWithinBounds(int row, int col) {
         return row >= 0 && row < size && col >= 0 && col < size;
     }
-    public boolean isAvailableTile(int row, int col) {
-        return row >= 0 && row < world.length && col >= 0 && col < world[0].length && world[row][col].isEmpty();
-    }
+//    public boolean isAvailableTile(int row, int col) {
+//        return row >= 0 && row < world.length && col >= 0 && col < world[0].length && world[row][col].isEmpty();
+//    }
 
 
 }

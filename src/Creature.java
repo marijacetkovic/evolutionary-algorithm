@@ -14,16 +14,20 @@ public class Creature {
     private Creature mate;
     private final double eatProbability = 0.7;
     private final double breedProbability = 0.5;
+    private final int foodType;
+    private int health;
 
-    public Creature(int id, int i, int j){
+    public Creature(int id, int i, int j, int foodType){
         this.id = id;
         this.i = i;
         this.j = j;
+        this.foodType = foodType;
         this.r = new Random();
         this.wantToMate = false;
         this.mate = null;
         this.eatsFood = true;
         this.gene = new Gene();
+        this.health = 10;
         System.out.println("Spawned a creature at positions " +i+","+j);
     }
 
@@ -45,7 +49,7 @@ public class Creature {
         }
         else{
             System.out.println("Creature " + id + " found mate " + mate.getId() + " at " + i + " " + j);
-            eventManager.publish(new BreedingEvent(this, mate, world));
+            eventManager.publish(new BreedingEvent(this, mate, world),false);
             mate.resetMates();
             potentialMates = null;
             mate = null;
@@ -53,11 +57,9 @@ public class Creature {
     }
 
     private void eatingAction(EventManager eventManager, World world){
-        if(world.world[i][j].contains(Config.FOOD_CODE) && eatsFood){
-            eatsFood = false;
-            //this should be fixed in future - mark food as unavailable until the event is processed or sth
-            world.world[i][j].remove((Integer) Config.FOOD_CODE);
-            eventManager.publish(new EatingEvent(this, i,j, world));
+        if(world.world[i][j].contains(foodType)){
+            //process eating food immediately
+            eventManager.publish(new EatingEvent(this, i,j, world),true);
         }
     }
 
@@ -106,13 +108,6 @@ public class Creature {
         return gene;
     }
 
-    private void eat(World world){
-
-    }
-
-    private void move(World world){
-    }
-
     public void updatePosition(int i, int j){
         this.i = i;
         this.j = j;
@@ -120,5 +115,18 @@ public class Creature {
 
     public void setGene(int value) {
         this.gene.setGene(value);
+    }
+
+    public boolean checkHealth(World world) {
+        health--;
+        if (health < 0) {
+            System.out.println("Creature " + id + " died.");
+            world.remove(i,j,id);
+            return true;
+        }
+        else return false;
+    }
+    public void consume(){
+        health++;
     }
 }
