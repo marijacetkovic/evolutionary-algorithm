@@ -6,7 +6,7 @@ public class Creature {
     //position within the world
     private int i;
     private int j;
-    private Random r;
+    private static Random r = new Random();
     private boolean wantToMate;
     private boolean eatsFood;
     public List<Creature> potentialMates;
@@ -22,7 +22,6 @@ public class Creature {
         this.i = i;
         this.j = j;
         this.foodType = foodType;
-        this.r = new Random();
         this.wantToMate = false;
         this.mate = null;
         this.eatsFood = true;
@@ -31,15 +30,29 @@ public class Creature {
         System.out.println("Spawned a creature at positions " +i+","+j);
     }
 
+    public int getFoodType() {
+        return foodType;
+    }
+
+    public int getHealth() {
+        return health;
+    }
+
     public void takeAction(EventManager eventManager, World world) {
-        //int[] foodLocation = world.checkAvailableFood(this);
-        if (r.nextDouble() < eatProbability) {
+        if (shouldEat()) {
             eatingAction(eventManager, world);
         }
-        if (r.nextDouble() < breedProbability) {
+        if (shouldBreed()) {
             breedingAction(eventManager, world);
         }
     }
+    private boolean shouldEat() {
+        return r.nextDouble() < eatProbability;
+    }
+    private boolean shouldBreed() {
+        return r.nextDouble() < breedProbability;
+    }
+
 
     private void breedingAction(EventManager eventManager, World world) {
         wantToMate = true;
@@ -51,8 +64,7 @@ public class Creature {
             System.out.println("Creature " + id + " found mate " + mate.getId() + " at " + i + " " + j);
             eventManager.publish(new BreedingEvent(this, mate, world),false);
             mate.resetMates();
-            potentialMates = null;
-            mate = null;
+            this.resetMates();
         }
     }
 
@@ -62,7 +74,6 @@ public class Creature {
             eventManager.publish(new EatingEvent(this, i,j, world),true);
         }
     }
-
 
 
     private boolean mateWithMe() {
@@ -79,6 +90,7 @@ public class Creature {
     }
     public void resetMates(){
         potentialMates = null;
+        mate = null;
     }
     public boolean hasMate(Integer id){
         if (potentialMates == null) return false;

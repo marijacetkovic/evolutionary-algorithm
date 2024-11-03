@@ -1,12 +1,19 @@
 public class Food {
     private int nutrition;
-    private FoodType type;
+    private int code;
     private int i;
     private int j;
-    public Food(int i,int j, int nutrition, FoodType type){
+    public Food(int i,int j, int nutrition, int code){
         this.i = i;
         this.j = j;
         this.nutrition = nutrition;
-        this.type = type;
+        this.code = code;
+    }
+    public int getNutrition() {
+        return nutrition;
+    }
+
+    public int getCode() {
+        return code;
     }
 }

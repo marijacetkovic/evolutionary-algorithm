@@ -3,7 +3,7 @@ import java.util.function.Predicate;
 
 public class World {
     private final int NUM_CREATURES = 10;
-    private final int MAX_CREATURES = 15;
+    private final int MAX_CREATURES = 20;
     private final int NUM_FOOD = 10;
     public List<Integer>[][] world;
     private ArrayList<Creature> population;
@@ -13,6 +13,10 @@ public class World {
     private List<int[]> directions;
     private final EventManager eventManager;
     private int lastId;
+    private static final Map<FoodType, Integer> foodCodes = Map.of(
+            FoodType.MEAT, -1,
+            FoodType.PLANT, -2
+    );
     public World(int n){
         this.size = n;
         this.world = new ArrayList[n][n];
@@ -26,10 +30,9 @@ public class World {
                 new int[]{0, -1},
                 new int[]{-1, 0}
         );
-
         init();
         spawnCreatures();
-        spawnFood();
+        spawnFood(NUM_FOOD);
     }
 
     private void init(){
@@ -54,7 +57,7 @@ public class World {
             j = r.nextInt(size);
         //}
         //while (!world[i][j].isEmpty());
-        Creature c = new Creature(lastId,i,j,-2);
+        Creature c = new Creature(lastId,i,j,getRandomFoodCode());
         world[i][j].add(lastId);
         //population.add(new Creature(lastId,i,j));
         population.add(c);
@@ -62,41 +65,57 @@ public class World {
         return c;
     }
 
-    private void spawnFood(){
-        for (int k = 0; k < NUM_FOOD; k++) {
+    private int getRandomFoodCode() {
+        FoodType[] food = FoodType.values();
+        FoodType rnd = food[r.nextInt(food.length)];
+        return foodCodes.get(rnd);
+    }
+
+    private int calcNutrition(){
+        return 100;
+    }
+
+    private void spawnFood(int n){
+        for (int k = 0; k < n; k++) {
             int i,j;
             do{
                 i = r.nextInt(size);
                 j = r.nextInt(size);}
             while (world[i][j].contains(-2));
-            food.add(new Food(i,j,100,FoodType.MEAT));
-            world[i][j].add(-2);
+            int x = getRandomFoodCode();
+            food.add(new Food(i,j,calcNutrition(),x));
+            world[i][j].add(x);
         }
     }
-    public boolean behave(){
 
+    private void checkFoodQuantity(){
+        if (food.size()<NUM_FOOD/3) {
+            System.out.println("low on food");
+            spawnFood(NUM_FOOD);
+        }
+    }
+
+    public boolean behave() {
         printMatrix(world);
-
-        for (Creature c: population) {
-            c.takeAction(eventManager,this);
-        }
-
-        List<Creature> toRemove = new ArrayList<>();
-
-        for (Creature c : population) {
-            checkAvailableMove(c);
-            boolean dead = c.checkHealth(this);
-            if (dead) toRemove.add(c);
-        }
-
-        population.removeAll(toRemove);
-        if(population.isEmpty()) {
-            System.out.println("Whole generation died.");
-            return false;
-        }
+        population.forEach(c -> c.takeAction(eventManager, this));
+        removeDead();
         eventManager.process();
-        return true;
+        checkFoodQuantity();
+        return !population.isEmpty();
     }
+
+    private void removeDead() {
+        List<Creature> toRemove = new ArrayList<>();
+        for (Creature c : population) {
+            //move everyone at the end of a round by one place
+            checkAvailableMove(c);
+            //check everyones health
+            if (c.checkHealth(this)) toRemove.add(c);
+        }
+        population.removeAll(toRemove);
+        if (population.isEmpty()) System.out.println("Whole generation died.");
+    }
+
     public void printMatrix(List<Integer>[][] matrix) {
         System.out.println("-----------------------------------");
         for (int i = 0; i < matrix.length; i++) {
@@ -116,13 +135,17 @@ public class World {
     public void moveCreature(Creature creature, int i, int j) {
         world[i][j].add(creature.getId());
         remove(creature.getI(),creature.getJ(),creature.getId());
-        System.out.println("Creature " + creature.getId() + " moved to " + i + " " + j);
+        System.out.println("Creature " + creature.getId() + " H:"+creature.getHealth()+" moved to " + i + "," + j);
         creature.updatePosition(i,j);
     }
 
     public void remove(int i, int j, int type){
         world[i][j].remove((Integer) type);
     }
+    public void cutFood(int code){
+        for (Food f:food) if (f.getCode()==code) {food.remove(f); return;}
+    }
+
     public List<Creature> checkEligibleMate(Creature c){
         List<Integer> ids = findEligibleMates(c, x->x>=0);
         return findCreatureById(ids);
@@ -136,12 +159,6 @@ public class World {
 
     }
     private List<Integer> findEligibleMates(Creature c, Predicate<Integer> condition){
-        List<int[]> directions =  Arrays.asList(
-                new int[]{1, 0},
-                new int[]{0, 1},
-                new int[]{0, -1},
-                new int[]{-1, 0}
-        );
         int i = c.getI();
         int j = c.getJ();
         Collections.shuffle(directions, r);
@@ -163,12 +180,6 @@ public class World {
         return res;
     }
     private int[] checkAdjacentTile(Creature c){
-        List<int[]> directions =  Arrays.asList(
-                new int[]{1, 0},
-                new int[]{0, 1},
-                new int[]{0, -1},
-                new int[]{-1, 0}
-        );
         int i = c.getI();
         int j = c.getJ();
         Collections.shuffle(directions, r);

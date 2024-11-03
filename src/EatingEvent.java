@@ -14,7 +14,8 @@ public class EatingEvent extends Event{
 
     @Override
     public void process() {
-        w.remove(i,j,Config.FOOD_CODE);
+        w.remove(i,j,c.getFoodType());
+        w.cutFood(c.getFoodType());
         c.consume();
     }
 }
