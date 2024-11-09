@@ -35,6 +35,14 @@ public class World {
         init();
         spawnCreatures();
         spawnFood(NUM_FOOD);
+        printMatrix(world);
+    }
+    public int getSize(){
+        return size;
+    }
+
+    public ArrayList<Creature> getPopulation(){
+        return population;
     }
 
     private void init(){
@@ -54,11 +62,11 @@ public class World {
     public Creature spawnCreature(){
         int i,j;
         if(lastId==MAX_CREATURES) return null;
-        //do{
+        do{
             i = r.nextInt(size);
             j = r.nextInt(size);
-        //}
-        //while (!world[i][j].isEmpty());
+        }
+        while (!world[i][j].isEmpty());
         Creature c = new Creature(lastId,i,j,getRandomFoodCode());
         world[i][j].add(lastId);
         //population.add(new Creature(lastId,i,j));
