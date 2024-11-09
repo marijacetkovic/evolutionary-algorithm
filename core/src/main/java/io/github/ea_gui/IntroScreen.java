@@ -26,6 +26,7 @@ public class IntroScreen implements Screen {
         game.batch.setProjectionMatrix(game.viewport.getCamera().combined);
 
         game.batch.begin();
+        game.font.setColor(Color.RED);
         game.font.draw(game.batch, "Welcome to the Evolution Simulation! ", 5, 1.5f);
         game.font.draw(game.batch, "Tap anywhere to begin!", 1, 1);
         game.batch.end();
