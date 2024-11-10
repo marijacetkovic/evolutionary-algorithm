@@ -18,4 +18,12 @@ public class Food {
     public int getCode() {
         return code;
     }
+
+    public int getI() {
+        return i;
+    }
+
+    public int getJ() {
+        return j;
+    }
 }

@@ -15,8 +15,7 @@ public class Creature {
     public List<Creature> potentialMates;
     private int calories;
     private Creature mate;
-    private final double eatProbability = 0.7;
-    private final double breedProbability = 0.5;
+
     private final int foodType;
     private int health;
 
@@ -42,18 +41,18 @@ public class Creature {
     }
 
     public void takeAction(EventManager eventManager, World world) {
-        if (shouldEat()) {
+        if (Config.eat&&shouldEat()) {
             eatingAction(eventManager, world);
         }
-        if (shouldBreed()) {
+        if (Config.breed&&shouldBreed()) {
             breedingAction(eventManager, world);
         }
     }
     private boolean shouldEat() {
-        return r.nextDouble() < eatProbability;
+        return r.nextDouble() < Config.eatProbability;
     }
     private boolean shouldBreed() {
-        return r.nextDouble() < breedProbability;
+        return r.nextDouble() < Config.breedProbability;
     }
 
 
@@ -144,4 +143,5 @@ public class Creature {
     public void consume(){
         health++;
     }
+
 }

@@ -21,10 +21,17 @@ public class SimulationScreen implements Screen {
         world = new World(10);
         worldRenderer = new WorldRenderer(world,game);
     }
-
+    float time;
     @Override
     public void render(float delta) {
-        worldRenderer.render(delta);
+        //world.behave();
+        //float deltax = Gdx.graphics.getDeltaTime();
+        time+=delta;
+        if(time>2f){
+            time = 0;
+            world.behave();
+        }
+        else{worldRenderer.render(delta);}
     }
 
     @Override

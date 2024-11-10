@@ -52,6 +52,9 @@ public class World {
             }
         }
     }
+    public ArrayList<Food> getFood(){
+        return food;
+    }
 
     private void spawnCreatures(){
         for (int k = 0; k < NUM_CREATURES; k++) {
@@ -76,9 +79,10 @@ public class World {
     }
 
     private int getRandomFoodCode() {
-        FoodType[] food = FoodType.values();
-        FoodType rnd = food[r.nextInt(food.length)];
-        return foodCodes.get(rnd);
+//        FoodType[] food = FoodType.values();
+//        FoodType rnd = food[r.nextInt(food.length)];
+//        return foodCodes.get(rnd);
+        return -1;
     }
 
     private int calcNutrition(){
@@ -152,9 +156,15 @@ public class World {
     public void remove(int i, int j, int type){
         world[i][j].remove((Integer) type);
     }
-    public void cutFood(int code){
-        for (Food f:food) if (f.getCode()==code) {food.remove(f); return;}
+    public void cutFood(int i, int j){
+        System.out.println("before removing"+food.size());
+        for (Food f:food) if (f.getI()==i && f.getJ()==j) {
+            boolean flag = food.remove(f);
+            System.out.println("Removed"+flag);
+            System.out.println("after removing"+food.size());
+            return;}
     }
+
 
     public List<Creature> checkEligibleMate(Creature c){
         List<Integer> ids = findEligibleMates(c, x->x>=0);
