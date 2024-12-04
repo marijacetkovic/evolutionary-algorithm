@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.utils.ScreenUtils;
+import io.github.evolutionary_algorithm.Config;
 import io.github.evolutionary_algorithm.World;
 
 public class SimulationScreen implements Screen {
@@ -27,11 +28,13 @@ public class SimulationScreen implements Screen {
         //world.behave();
         //float deltax = Gdx.graphics.getDeltaTime();
         time+=delta;
-        if(time>2f){
+        if(time> Config.TIME){
             time = 0;
             world.behave();
         }
-        else{worldRenderer.render(delta);}
+        else{
+            worldRenderer.render(delta);
+        }
     }
 
     @Override

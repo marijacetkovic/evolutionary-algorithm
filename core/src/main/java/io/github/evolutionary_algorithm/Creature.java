@@ -32,6 +32,8 @@ public class Creature {
         System.out.println("Spawned a creature at positions " +i+","+j);
     }
 
+
+
     public int getFoodType() {
         return foodType;
     }
