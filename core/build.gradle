@@ -1,10 +1,19 @@
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 eclipse.project.name = appName + '-core'
-
+tasks.withType(Test) {
+  useJUnitPlatform()
+  testLogging {
+    events("passed", "skipped", "failed")
+  }
+}
 dependencies {
   api "com.badlogicgames.gdx:gdx-ai:$aiVersion"
   api "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
   api "com.badlogicgames.gdx:gdx:$gdxVersion"
+    implementation 'junit:junit:4.13.1'
+  testImplementation 'org.junit.jupiter:junit-jupiter:5.8.1'
+  testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
+
 
   if(enableGraalNative == 'true') {
     implementation "io.github.berstanio:gdx-svmhelper-annotations:$graalHelperVersion"

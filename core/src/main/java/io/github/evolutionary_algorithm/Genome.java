@@ -37,6 +37,7 @@ public class Genome {
     }
     public void addEdge(Edge e){
         this.edgeGenes.add(e);
+        e.getTargetNode().addPrevEdge(e);
     }
 
     public void displayGenotype(){

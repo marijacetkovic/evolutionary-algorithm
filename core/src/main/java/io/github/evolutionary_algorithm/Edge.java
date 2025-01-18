@@ -1,35 +1,35 @@
 package io.github.evolutionary_algorithm;
 
 public class Edge {
-    int sourceNodeId;
-    int targetNodeId;
+    Node sourceNode;
+    Node targetNode;
     double weight;
     boolean enabled;
     int innovationNumber;
 
-    public Edge(int sourceNodeId, int targetNodeId, double weight, int innovationNumber) {
-        this.sourceNodeId = sourceNodeId;
-        this.targetNodeId = targetNodeId;
+    public Edge(Node sourceNode, Node targetNode, double weight, int innovationNumber) {
+        this.sourceNode = sourceNode;
+        this.targetNode = targetNode;
         this.weight = weight;
         //this.enabled = enabled;
         this.innovationNumber = innovationNumber;
     }
 
 
-    public int getSourceNode() {
-        return sourceNodeId;
+    public Node getSourceNode() {
+        return sourceNode;
     }
 
-    public void setSourceNode(int id) {
-        this.sourceNodeId = id;
+    public void setSourceNode(Node sourceNode) {
+        this.sourceNode = sourceNode;
     }
 
-    public int getTargetNode() {
-        return targetNodeId;
+    public Node getTargetNode() {
+        return targetNode;
     }
 
-    public void setTargetNode(int id) {
-        this.targetNodeId = id;
+    public void setTargetNode(Node targetNode) {
+        this.targetNode = targetNode;
     }
 
     public double getWeight() {

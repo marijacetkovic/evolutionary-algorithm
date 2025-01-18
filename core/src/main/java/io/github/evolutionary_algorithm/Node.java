@@ -1,14 +1,17 @@
 package io.github.evolutionary_algorithm;
 
+import java.util.ArrayList;
+
 public class Node {
     int id;
     NodeType nodeType;
     double activationValue;
-
-    public Node(int id, NodeType nodeType) {
+    ArrayList<Edge> prev;
+    public Node(int id, NodeType nodeType, double activationValue) {
         this.id = id;
         this.nodeType = nodeType;
-        //this.activationValue = activationValue;
+        this.activationValue = activationValue;
+        prev = new ArrayList<>();
     }
 
     public int getId() {
@@ -30,8 +33,22 @@ public class Node {
     public double getActivationValue() {
         return activationValue;
     }
+    public void addPrevEdge(Edge e){
+        prev.add(e);
+    }
 
-    public void setActivationValue(double activationValue) {
-        this.activationValue = activationValue;
+    public void calculateValue(){
+        activationValue = 0;
+        for (Edge e:prev) {
+            activationValue+=e.sourceNode.getActivationValue()*e.getWeight();
+        }
+    }
+
+    public void activate(){
+        //activation function
+    }
+
+    public ArrayList<Edge> getPrev() {
+        return prev;
     }
 }
