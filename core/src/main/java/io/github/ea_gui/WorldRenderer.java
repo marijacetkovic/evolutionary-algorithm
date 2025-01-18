@@ -1,8 +1,6 @@
 package io.github.ea_gui;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.assets.AssetManager;
-import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -34,13 +32,13 @@ public class WorldRenderer {
         this.world = world;
         this.game = game;
         this.n = world.getSize();
-        this.tileSize = 4f/n;
-        this.padding = 0.2f/n;
+        this.tileSize = 32*3f;
+        this.padding = 1/100f;
         tileTexture = new Texture(Gdx.files.internal("C:/EvolutionaryAlgorithm/assets/tile.png"));
         creatureTexture = new Texture(Gdx.files.internal("C:/EvolutionaryAlgorithm/assets/monster.png"));
         foodTexture = new Texture(Gdx.files.internal("C:/EvolutionaryAlgorithm/assets/food1.png"));
         map = new TmxMapLoader().load("novaMapa.tmx");
-        renderer = new OrthogonalTiledMapRenderer(map, 1f / 64f);
+        renderer = new OrthogonalTiledMapRenderer(map, 3f);
     }
 
     public void render(float delta) {
@@ -92,10 +90,10 @@ public class WorldRenderer {
     }
 
     private float calcX(int j){
-        return j * (tileSize + padding) + game.viewport.getWorldWidth() / 4;
+        return j * (tileSize + padding);
     }
     private float calcY(int i){
-        return i * (tileSize + padding) + game.viewport.getWorldHeight() / 10;
+        return i * (tileSize + padding);
     }
 }
 
