@@ -37,14 +37,13 @@ public class Individual {
         calcPropagation();
     }
     private void calcPropagation(){
+        propagateLayer(HIDDEN);
+        propagateLayer(OUTPUT);
+    }
+
+    private void propagateLayer(NodeType layer){
         for (Node n: nodes) {
-            if (n.getNodeType() == HIDDEN){
-                n.calculateValue();
-                n.activate();
-            }
-        }
-        for (Node n: nodes) {
-            if (n.getNodeType() == OUTPUT){
+            if (n.getNodeType() == layer){
                 n.calculateValue();
                 n.activate();
             }

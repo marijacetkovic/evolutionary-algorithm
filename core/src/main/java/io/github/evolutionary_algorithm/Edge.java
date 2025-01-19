@@ -1,17 +1,17 @@
 package io.github.evolutionary_algorithm;
 
 public class Edge {
-    Node sourceNode;
-    Node targetNode;
-    double weight;
-    boolean enabled;
-    int innovationNumber;
+    private Node sourceNode;
+    private Node targetNode;
+    private double weight;
+    private boolean enabled;
+    private int innovationNumber;
 
     public Edge(Node sourceNode, Node targetNode, double weight, int innovationNumber) {
         this.sourceNode = sourceNode;
         this.targetNode = targetNode;
         this.weight = weight;
-        //this.enabled = enabled;
+        this.enabled = true;
         this.innovationNumber = innovationNumber;
     }
 
@@ -53,5 +53,10 @@ public class Edge {
 
     public void setInnovationNumber(int innovationNumber) {
         this.innovationNumber = innovationNumber;
+    }
+
+    public void toggleEnabled() {
+        if(enabled) enabled = false;
+        else enabled = true;
     }
 }

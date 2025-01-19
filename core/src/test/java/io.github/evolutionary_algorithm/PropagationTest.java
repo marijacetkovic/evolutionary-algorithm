@@ -1,9 +1,4 @@
 package io.github.evolutionary_algorithm;
-
-import io.github.evolutionary_algorithm.Edge;
-import io.github.evolutionary_algorithm.Genome;
-import io.github.evolutionary_algorithm.Individual;
-import io.github.evolutionary_algorithm.Node;
 import org.junit.jupiter.api.Test;
 
 import static io.github.evolutionary_algorithm.NodeType.*;
@@ -38,9 +33,9 @@ class PropagationTest {
 
         double expectedHiddenNodeValue = 0.5 - 1.4;
         assertEquals(expectedHiddenNodeValue, node4.getActivationValue(), 0.001);
-        System.out.println(expectedHiddenNodeValue);
+        //System.out.println(expectedHiddenNodeValue);
         double expectedOutputNodeValue = -0.9 * 1.2;
-        System.out.println(expectedOutputNodeValue);
+        //System.out.println(expectedOutputNodeValue);
         assertEquals(expectedOutputNodeValue, node3.getActivationValue(), 0.001);
     }
 
@@ -106,7 +101,7 @@ class PropagationTest {
 
         double expectedOutputNodeValue1 = (node5.getActivationValue() * 1.2) + (node6.getActivationValue() * 0.9) + (node7.getActivationValue() * -1.1);
         double expectedOutputNodeValue2 = (node5.getActivationValue() * -0.5) + (node6.getActivationValue() * 1.3) + (node7.getActivationValue() * 0.7);
-        System.out.println(expectedOutputNodeValue1);
+        //System.out.println(expectedOutputNodeValue1);
         assertEquals(expectedOutputNodeValue1, node3.getActivationValue(), 0.001);
         assertEquals(expectedOutputNodeValue2, node4.getActivationValue(), 0.001);
     }

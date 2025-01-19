@@ -56,4 +56,15 @@ public class Genome {
         }
     }
 
+    public boolean areConnected(Node a, Node b) {
+        //should add adjacency list for this check
+        for (Edge e:edgeGenes) {
+            if ((e.getSourceNode()==a && e.getTargetNode()==b)
+                || (e.getSourceNode()==b && e.getTargetNode()==a)){
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

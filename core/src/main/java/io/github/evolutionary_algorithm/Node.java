@@ -38,14 +38,15 @@ public class Node {
     }
 
     public void calculateValue(){
+        //reset previously accumulated val
         activationValue = 0;
         for (Edge e:prev) {
-            activationValue+=e.sourceNode.getActivationValue()*e.getWeight();
+            if(e.isEnabled()) activationValue+=e.getSourceNode().getActivationValue()*e.getWeight();
         }
     }
 
     public void activate(){
-        //activation function
+        //activation function should be added!!
     }
 
     public ArrayList<Edge> getPrev() {

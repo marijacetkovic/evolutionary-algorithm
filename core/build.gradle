@@ -1,11 +1,13 @@
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 eclipse.project.name = appName + '-core'
+
 tasks.withType(Test) {
   useJUnitPlatform()
   testLogging {
     events("passed", "skipped", "failed")
   }
 }
+
 dependencies {
   api "com.badlogicgames.gdx:gdx-ai:$aiVersion"
   api "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
