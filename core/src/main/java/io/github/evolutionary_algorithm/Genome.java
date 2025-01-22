@@ -1,10 +1,15 @@
 package io.github.evolutionary_algorithm;
 
+import com.badlogic.gdx.utils.Array;
+
 import java.util.ArrayList;
+import java.util.Comparator;
 
 public class Genome {
-    ArrayList<Node> nodeGenes;
-    ArrayList<Edge> edgeGenes;
+    private ArrayList<Node> nodeGenes;
+    private ArrayList<Edge> edgeGenes;
+    private double fitness;
+
 
     public Genome(ArrayList<Node> nodeGenes, ArrayList<Edge> edgeGenes) {
         this.nodeGenes = nodeGenes;
@@ -14,6 +19,7 @@ public class Genome {
     public Genome() {
         nodeGenes = new ArrayList<>();
         edgeGenes = new ArrayList<>();
+        fitness = 1;
     }
 
     public ArrayList<Node> getNodeGenes() {
@@ -66,5 +72,15 @@ public class Genome {
         }
 
         return false;
+    }
+
+    public double getFitness(){
+        return fitness;
+    }
+
+    public ArrayList<Edge> getGenesSorted(){
+        ArrayList<Edge> e = new ArrayList<Edge>(edgeGenes);
+        e.sort(Comparator.comparingInt(Edge::getInnovationNumber));
+        return e;
     }
 }

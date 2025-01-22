@@ -10,13 +10,13 @@ public class GAOperations {
 
     public static void mutate(Genome g){
         if(r.nextDouble()>0.5){
-            addEdgeMutation(g);
+            //addEdgeMutation(g);
         }
         else{
             addNodeMutation(g);
         }
     }
-    private static void addEdgeMutation(Genome g){
+    public static void addEdgeMutation(Genome g){
         ArrayList<Node> nodes = g.getNodeGenes();
         Node a = nodes.get(r.nextInt(nodes.size()));
         Node b;
@@ -29,20 +29,23 @@ public class GAOperations {
             i++;
             if (i >= max) {
                 a = nodes.get(r.nextInt(nodes.size()));
-                //or exit mutation ??
+                break;
             }
         } while (g.areConnected(a, b) || a == b);
 
         double weight = r.nextDouble(-1.0,1.001);
+        int IN = INManager.getInstance().getInnovationID(a,b);
         //change innovation number!!
-        Edge e = new Edge(a,b,weight,0);
+        Edge e = new Edge(a,b,weight,IN);
         g.addEdge(e);
     }
 
-    private static void addNodeMutation(Genome g){
-        //should add node ids!!!do i need them
-        Node n = new Node(-1, HIDDEN,0.0);
+    public static void addNodeMutation(Genome g){
+        //should add node ids
         ArrayList<Edge> edges = g.getEdgeGenes();
+        ArrayList<Node> nodes = g.getNodeGenes();
+        int id = nodes.get(nodes.size()-1).getId();
+        Node n = new Node(++id, HIDDEN,0.0);
         Edge e;
         do{
             e = edges.get(r.nextInt(edges.size()));
@@ -52,12 +55,48 @@ public class GAOperations {
         Node src = e.getSourceNode();
         Node target = e.getTargetNode();
         //and innovation number check!!
-        Edge e1 = new Edge(src, n, 1.0, -1);
-        Edge e2 = new Edge(n, target, e.getWeight(), -1);
+        int IN1 = INManager.getInstance().getInnovationID(src,n);
+        int IN2 = INManager.getInstance().getInnovationID(n,target);
+        Edge e1 = new Edge(src, n, 1.0, IN1);
+        Edge e2 = new Edge(n, target, e.getWeight(), IN2);
         edges.add(e1);
         edges.add(e2);
+        nodes.add(n);
     }
 
 
+
+    public static void crossover(Genome p1, Genome p2){
+        double f1 = p1.getFitness();
+        double f2 = p2.getFitness();
+        if (f1>f2){
+            getGenes(p1,p2);
+        }
+        else{
+            getGenes(p2,p1);
+        }
+
+    }
+
+    private static void getGenes(Genome p1, Genome p2){
+        ArrayList<Edge> e1 = p1.getGenesSorted();
+        ArrayList<Edge> e2 = p2.getGenesSorted();
+        ArrayList<Edge> matching = new ArrayList<>();
+        ArrayList<Edge> disjoint = new ArrayList<>();
+
+        while(!e1.isEmpty()){
+            if (!e2.isEmpty() && e1.get(0).getInnovationNumber()==
+                e2.get(0).getInnovationNumber()){
+                //matching gene
+                matching.add(e1.get(0));
+                e1.remove(0);
+                e2.remove(0);
+            }
+            else{
+                disjoint.add(e1.get(0));
+                e1.remove(0);
+            }
+        }
+    }
 
 }

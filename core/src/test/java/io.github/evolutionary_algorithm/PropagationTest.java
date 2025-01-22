@@ -5,9 +5,8 @@ import static io.github.evolutionary_algorithm.NodeType.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class PropagationTest {
-
     @Test
-    void testPropagationSmall() {
+    public void testPropagationSmall() {
         Genome genome = new Genome();
 
         Node node1 = new Node(1, INPUT, 1.0);
@@ -38,9 +37,8 @@ class PropagationTest {
         //System.out.println(expectedOutputNodeValue);
         assertEquals(expectedOutputNodeValue, node3.getActivationValue(), 0.001);
     }
-
     @Test
-    void testPropagationMedium() {
+    public void testPropagationMedium() {
         Genome genome = new Genome();
 
         Node node1 = new Node(1, INPUT, 1.0);
@@ -105,4 +103,5 @@ class PropagationTest {
         assertEquals(expectedOutputNodeValue1, node3.getActivationValue(), 0.001);
         assertEquals(expectedOutputNodeValue2, node4.getActivationValue(), 0.001);
     }
+
 }
