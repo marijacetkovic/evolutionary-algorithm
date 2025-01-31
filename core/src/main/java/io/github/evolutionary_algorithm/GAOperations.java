@@ -10,7 +10,7 @@ public class GAOperations {
 
     public static void mutate(Genome g){
         if(r.nextDouble()>0.5){
-            //addEdgeMutation(g);
+            addEdgeMutation(g);
         }
         else{
             addNodeMutation(g);
@@ -35,15 +35,14 @@ public class GAOperations {
 
         double weight = r.nextDouble(-1.0,1.001);
         int IN = INManager.getInstance().getInnovationID(a,b);
-        //change innovation number!!
         Edge e = new Edge(a,b,weight,IN);
         g.addEdge(e);
     }
 
     public static void addNodeMutation(Genome g){
-        //should add node ids
         ArrayList<Edge> edges = g.getEdgeGenes();
         ArrayList<Node> nodes = g.getNodeGenes();
+        //add last available id
         int id = nodes.get(nodes.size()-1).getId();
         Node n = new Node(++id, HIDDEN,0.0);
         Edge e;
@@ -69,12 +68,12 @@ public class GAOperations {
     public static void crossover(Genome p1, Genome p2){
         double f1 = p1.getFitness();
         double f2 = p2.getFitness();
-        if (f1>f2){
-            getGenes(p1,p2);
-        }
-        else{
-            getGenes(p2,p1);
-        }
+        if (f1>f2) getGenes(p1,p2);
+        else getGenes(p2,p1);
+
+
+        //create offspring
+        //assign offspring a species through species manager
 
     }
 
@@ -98,5 +97,7 @@ public class GAOperations {
             }
         }
     }
+
+
 
 }

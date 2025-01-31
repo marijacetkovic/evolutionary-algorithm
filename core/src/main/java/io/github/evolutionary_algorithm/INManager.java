@@ -24,12 +24,7 @@ public class INManager {
             throw new IllegalArgumentException("Source and target nodes must not be null.");
         }
 
-        String edgeKey;
-        if (sourceNode.getId() < targetNode.getId()) {
-            edgeKey = sourceNode.getId() + "-" + targetNode.getId();
-        } else {
-            edgeKey = targetNode.getId() + "-" + sourceNode.getId();
-        }
+        String edgeKey = sourceNode.getId() + "-" + targetNode.getId();
 
         if (INMap.containsKey(edgeKey)) {
             return INMap.get(edgeKey);

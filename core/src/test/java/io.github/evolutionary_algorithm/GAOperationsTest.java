@@ -64,6 +64,6 @@ public class GAOperationsTest {
 
         Edge newEdge = genome.getEdgeGenes().get(1);
 
-        assertFalse(newEdge.getInnovationNumber() > 0);
+        assertTrue(newEdge.getInnovationNumber() > 0);
     }
 }
