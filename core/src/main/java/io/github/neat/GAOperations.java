@@ -1,9 +1,9 @@
-package io.github.evolutionary_algorithm;
+package io.github.neat;
 
 import java.util.ArrayList;
 import java.util.Random;
 
-import static io.github.evolutionary_algorithm.NodeType.HIDDEN;
+import static io.github.neat.NodeType.HIDDEN;
 
 public class GAOperations {
     static Random r = new Random(4);
@@ -65,37 +65,69 @@ public class GAOperations {
 
 
 
+    private static void getGenes(Genome p1, Genome p2,
+                                 ArrayList<Edge> m, ArrayList<Edge> d,
+                                 ArrayList<Edge> e){
+        //not sure if this is needed
+        ArrayList<Edge> e1 = p1.getGenesSorted();
+        ArrayList<Edge> e2 = p2.getGenesSorted();
+
+        //check fitness
+        double f1 = p1.getFitness();
+        double f2 = p2.getFitness();
+        boolean fitter1 = f1 > f2;
+        boolean fitter2 = f2 > f1;
+        int i = 0, j = 0;
+
+        while (i < e1.size() && j < e2.size()) {
+            Edge edge1 = e1.get(i);
+            Edge edge2 = e2.get(j);
+            //matching gene
+            if (edge1.getInnovationNumber() == edge2.getInnovationNumber()){
+                m.add(edge1);
+                i++;
+                j++;
+            }
+            //disjoint from parent 1
+            else if(edge1.getInnovationNumber() < edge2.getInnovationNumber()){
+                if (fitter1){
+                    d.add(edge1);
+                }
+                i++;
+            }
+            //disjoint from parent 2
+            else{
+                if (fitter2){
+                    d.add(edge2);
+                }
+                j++;
+            }
+        }
+        //excess genes
+        while(fitter1&& i<e1.size()){
+            e.add(e1.get(i));
+            i++;
+        }
+        while(fitter2&& j<e2.size()){
+            e.add(e2.get(j));
+            j++;
+        }
+
+    }
+
     public static void crossover(Genome p1, Genome p2){
         double f1 = p1.getFitness();
         double f2 = p2.getFitness();
-        if (f1>f2) getGenes(p1,p2);
-        else getGenes(p2,p1);
-
+        ArrayList<Edge> m = new ArrayList<>();
+        ArrayList<Edge> d = new ArrayList<>();
+        ArrayList<Edge> e = new ArrayList<>();
+        getGenes(p1,p2,m,d,e);
+        Genome child = new Genome();
+        //collected edge genes - what about node genes ???
 
         //create offspring
         //assign offspring a species through species manager
 
-    }
-
-    private static void getGenes(Genome p1, Genome p2){
-        ArrayList<Edge> e1 = p1.getGenesSorted();
-        ArrayList<Edge> e2 = p2.getGenesSorted();
-        ArrayList<Edge> matching = new ArrayList<>();
-        ArrayList<Edge> disjoint = new ArrayList<>();
-
-        while(!e1.isEmpty()){
-            if (!e2.isEmpty() && e1.get(0).getInnovationNumber()==
-                e2.get(0).getInnovationNumber()){
-                //matching gene
-                matching.add(e1.get(0));
-                e1.remove(0);
-                e2.remove(0);
-            }
-            else{
-                disjoint.add(e1.get(0));
-                e1.remove(0);
-            }
-        }
     }
 
 

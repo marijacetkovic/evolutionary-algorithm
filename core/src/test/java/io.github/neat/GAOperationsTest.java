@@ -1,7 +1,6 @@
-package io.github.evolutionary_algorithm;
+package io.github.neat;
 import org.junit.jupiter.api.Test;
 
-import static io.github.evolutionary_algorithm.NodeType.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class GAOperationsTest {

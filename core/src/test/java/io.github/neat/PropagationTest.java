@@ -1,7 +1,7 @@
-package io.github.evolutionary_algorithm;
+package io.github.neat;
 import org.junit.jupiter.api.Test;
 
-import static io.github.evolutionary_algorithm.NodeType.*;
+import static io.github.neat.NodeType.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class PropagationTest {

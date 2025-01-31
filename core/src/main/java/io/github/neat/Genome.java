@@ -1,6 +1,4 @@
-package io.github.evolutionary_algorithm;
-
-import com.badlogic.gdx.utils.Array;
+package io.github.neat;
 
 import java.util.ArrayList;
 import java.util.Comparator;

@@ -1,8 +1,8 @@
-package io.github.evolutionary_algorithm;
+package io.github.neat;
 
 import java.util.ArrayList;
 
-import static io.github.evolutionary_algorithm.NodeType.*;
+import static io.github.neat.NodeType.*;
 
 public class Individual {
     int id;
