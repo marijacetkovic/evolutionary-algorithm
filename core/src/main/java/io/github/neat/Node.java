@@ -14,6 +14,12 @@ public class Node {
         prev = new ArrayList<>();
     }
 
+    public Node(Node original) {
+        this.id = original.id;
+        this.nodeType = original.nodeType;
+        this.activationValue = original.activationValue;
+        this.prev = new ArrayList<>();
+    }
     public int getId() {
         return id;
     }

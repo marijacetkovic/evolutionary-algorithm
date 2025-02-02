@@ -6,8 +6,11 @@ import java.util.Map;
 //global innovation number manager
 public class INManager {
     private static INManager instance;
-    private Map<String, Integer> INMap = new HashMap<>();
+    private Map<String, Integer> edgeINMap = new HashMap<>();
+    private Map<Integer, Integer> nodeINMap = new HashMap<>();
+
     private int lastInnovationId = 0;
+    private int lastNodeId = 0;
 
     private INManager() {
     }
@@ -26,12 +29,20 @@ public class INManager {
 
         String edgeKey = sourceNode.getId() + "-" + targetNode.getId();
 
-        if (INMap.containsKey(edgeKey)) {
-            return INMap.get(edgeKey);
+        if (edgeINMap.containsKey(edgeKey)) {
+            return edgeINMap.get(edgeKey);
         } else {
-            INMap.put(edgeKey, lastInnovationId);
+            edgeINMap.put(edgeKey, lastInnovationId);
             return lastInnovationId++;
         }
+    }
+
+    //assure everytime edge e is split, node connecting two new edges has same id
+    public int getNodeID(int edgeIN){
+        if (!nodeINMap.containsKey(edgeIN)){
+            nodeINMap.put(edgeIN,lastNodeId++);
+        }
+        return nodeINMap.get(edgeIN);
     }
 
 }

@@ -7,6 +7,7 @@ public class Genome {
     private ArrayList<Node> nodeGenes;
     private ArrayList<Edge> edgeGenes;
     private double fitness;
+    private Species species;
 
 
     public Genome(ArrayList<Node> nodeGenes, ArrayList<Edge> edgeGenes) {
@@ -64,7 +65,9 @@ public class Genome {
         //should add adjacency list for this check
         for (Edge e:edgeGenes) {
             if ((e.getSourceNode()==a && e.getTargetNode()==b)
-                || (e.getSourceNode()==b && e.getTargetNode()==a)){
+            //  uncommented for checking a->b direction only
+            //    || (e.getSourceNode()==b && e.getTargetNode()==a)
+            ){
                 return true;
             }
         }
@@ -80,5 +83,12 @@ public class Genome {
         ArrayList<Edge> e = new ArrayList<Edge>(edgeGenes);
         e.sort(Comparator.comparingInt(Edge::getInnovationNumber));
         return e;
+    }
+
+    public void setSpecies(Species species) {
+        this.species = species;
+    }
+    public Species getSpecies(){
+        return species;
     }
 }

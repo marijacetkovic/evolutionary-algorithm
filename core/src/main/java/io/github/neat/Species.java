@@ -14,6 +14,7 @@ public class Species {
         this.id = id;
         this.representative = rep;
         this.members = new ArrayList<>();
+        members.add(rep);
         //parameters for compatibility distance
         c1 = 1;
         c2 = 1;
@@ -45,7 +46,7 @@ public class Species {
     }
 
 
-    public double compatibilityDistance(Genome g, double c1, double c2, double c3) {
+    public double compatibilityDistance(Genome g) {
         ArrayList<Edge> g1 = g.getGenesSorted();
         ArrayList<Edge> g2 = representative.getGenesSorted();
 
@@ -101,6 +102,7 @@ public class Species {
 
     public void addMember(Genome genome) {
         members.add(genome);
+        genome.setSpecies(this);
     }
 }
 
