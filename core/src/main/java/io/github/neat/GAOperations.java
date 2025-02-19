@@ -68,7 +68,7 @@ public class GAOperations {
     private static void getGenes(Genome p1, Genome p2,
                                  ArrayList<Edge> m, ArrayList<Edge> d,
                                  ArrayList<Edge> e){
-        //not sure if this is needed
+        //align edges by innovation number
         ArrayList<Edge> e1 = p1.getGenesSorted();
         ArrayList<Edge> e2 = p2.getGenesSorted();
 

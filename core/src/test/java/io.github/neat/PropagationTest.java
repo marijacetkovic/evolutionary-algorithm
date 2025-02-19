@@ -28,7 +28,8 @@ class PropagationTest {
         genome.addEdge(edge3);
         Individual i = new Individual(0, genome);
 
-        i.makeDecision();
+        double[] input = {1,2,3};
+        i.makeDecision(input);
 
         double expectedHiddenNodeValue = 0.5 - 1.4;
         assertEquals(expectedHiddenNodeValue, node4.getActivationValue(), 0.001);
@@ -86,8 +87,8 @@ class PropagationTest {
         genome.addEdge(edge12);
 
         Individual i = new Individual(0, genome);
-
-        i.makeDecision();
+        double[] input = {1,2,3};
+        i.makeDecision(input);
 
         double expectedHiddenNodeValue1 = (1.0 * 0.5) + (2.0 * -0.7);
         double expectedHiddenNodeValue2 = (1.0 * 0.3) + (2.0 * -0.8);
@@ -104,4 +105,12 @@ class PropagationTest {
         assertEquals(expectedOutputNodeValue2, node4.getActivationValue(), 0.001);
     }
 
+    @Test
+    public void testDecisionMaking(){
+        Genome g = new Genome();
+        Individual i = new Individual(0, g);
+
+        double[] input = {1,3,5};
+        i.makeDecision(input);
+    }
 }

@@ -3,9 +3,17 @@ package io.github.neat;
 import java.util.ArrayList;
 import java.util.Comparator;
 
+import static io.github.neat.NodeType.HIDDEN;
+import static io.github.neat.NodeType.OUTPUT;
+
+
 public class Genome {
     private ArrayList<Node> nodeGenes;
     private ArrayList<Edge> edgeGenes;
+    private ArrayList<Node> inputNodes;
+    private ArrayList<Node> hiddenNodes;
+    private ArrayList<Node> outputNodes;
+
     private double fitness;
     private Species species;
 
@@ -18,6 +26,9 @@ public class Genome {
     public Genome() {
         nodeGenes = new ArrayList<>();
         edgeGenes = new ArrayList<>();
+        initInputNodes();
+        initOutputNodes();
+        initConnections();
         fitness = 1;
     }
 
@@ -42,6 +53,7 @@ public class Genome {
     }
     public void addEdge(Edge e){
         this.edgeGenes.add(e);
+        //this is bad
         e.getTargetNode().addPrevEdge(e);
     }
 
@@ -90,5 +102,99 @@ public class Genome {
     }
     public Species getSpecies(){
         return species;
+    }
+
+    public int calcPropagation(double[] input) {
+        setInputNodeValue(input);
+        propagateLayer(HIDDEN);
+        propagateLayer(OUTPUT);
+        return parseOutput(getOutput());
+    }
+
+
+    private void propagateLayer(NodeType layer){
+        for (Node n: nodeGenes) {
+            if (n.getNodeType() == layer){
+                n.calculateValue();
+                n.activate();
+            }
+        }
+    }
+
+    private int parseOutput(double[] output){
+        int idx = -1;
+        double max = -1;
+        for (int i = 0; i < output.length; i++) {
+            if (output[i]>max){
+                max = output[i];
+                idx = i;
+            }
+        }
+        return idx;
+    }
+
+    // for now 3 input nodes: food, nearest creature, energy level
+    private void initInputNodes() {
+        inputNodes = new ArrayList<>();
+        int numInputs = Config.numInputs;
+
+        for (int i = 0; i < numInputs; i++) {
+            int nodeID = i;
+            Node n = new Node(nodeID, NodeType.INPUT, 1.0);
+            inputNodes.add(n);
+            nodeGenes.add(n);
+        }
+    }
+
+
+    // decisions creature makes : eat, breed, move?, do nothing
+    private void initOutputNodes() {
+        outputNodes = new ArrayList<>();
+        int numOutputs = Config.numOutputs;
+        int startID = Config.numInputs;
+
+        for (int i = 0; i < numOutputs; i++) {
+            int nodeID = startID + i;
+            Node n = new Node(nodeID, OUTPUT, 1.0);
+            outputNodes.add(n);
+            nodeGenes.add(n);
+        }
+    }
+    //fully connected input/output network
+    private void initConnections() {
+        edgeGenes = new ArrayList<>();
+        INManager inManager = INManager.getInstance();
+
+        for (Node input : inputNodes) {
+            for (Node output : outputNodes) {
+                int innovationID = inManager.getInnovationID(input, output);
+                double weight = randomWeight();
+
+                Edge edge = new Edge(input, output, weight, innovationID);
+                addEdge(edge);
+            }
+        }
+    }
+
+    private double randomWeight() {
+        return Math.random() * 2 - 1;
+    }
+
+
+
+    private void setInputNodeValue(double[] input) {
+        for (int i = 0; i < inputNodes.size(); i++) {
+            inputNodes.get(i).setActivationValue(input[i]);
+        }
+    }
+    private void propagate(){
+
+    }
+    private double[] getOutput(){
+        double[] output = new double[outputNodes.size()];
+        for (int i = 0; i < outputNodes.size(); i++) {
+            output[i] = outputNodes.get(i).getActivationValue();
+        }
+        return output;
     }
 }

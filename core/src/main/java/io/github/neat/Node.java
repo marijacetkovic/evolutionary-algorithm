@@ -39,6 +39,11 @@ public class Node {
     public double getActivationValue() {
         return activationValue;
     }
+
+    public void setActivationValue(double activationValue) {
+        this.activationValue = activationValue;
+    }
+
     public void addPrevEdge(Edge e){
         prev.add(e);
     }

@@ -10,7 +10,7 @@ public class INManager {
     private Map<Integer, Integer> nodeINMap = new HashMap<>();
 
     private int lastInnovationId = 0;
-    private int lastNodeId = 0;
+    private int lastNodeId = Config.startNodeId;
 
     private INManager() {
     }
