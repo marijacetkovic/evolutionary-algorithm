@@ -122,7 +122,8 @@ public class World {
         List<Creature> toRemove = new ArrayList<>();
         for (Creature c : population) {
             //move everyone at the end of a round by one place
-            checkAvailableMove(c);
+            //should change this for genome
+            moveCreatureRandom(c);
             //check everyones health
             if (c.checkHealth(this)) toRemove.add(c);
         }
@@ -147,6 +148,7 @@ public class World {
     }
 
     public void moveCreature(Creature creature, int i, int j) {
+        if (!isWithinBounds(i,j)) return;
         world[i][j].add(creature.getId());
         remove(creature.getI(),creature.getJ(),creature.getId());
         System.out.println("Creature " + creature.getId() + " H:"+creature.getHealth()+" moved to " + i + "," + j);
@@ -170,7 +172,7 @@ public class World {
         List<Integer> ids = findEligibleMates(c, x->x>=0);
         return findCreatureById(ids);
     }
-    public int[] checkAvailableMove(Creature c){
+    public int[] moveCreatureRandom(Creature c){
         return checkAdjacentTile(c);
     }
     public List<Creature> checkMateTile(Creature c){
@@ -216,6 +218,22 @@ public class World {
     public boolean isWithinBounds(int row, int col) {
         return row >= 0 && row < size && col >= 0 && col < size;
     }
+
+    public double getFoodDistance() {
+    }
+
+    public double getCreatureDistance() {
+    }
+
+    private double getNearest(int id, int i, int j){
+
+    }
+
+    private double bfs(int id, int i, int j, Queue<int[]> visited){
+        int distance = 0;
+
+    }
+
 //    public boolean isAvailableTile(int row, int col) {
 //        return row >= 0 && row < world.length && col >= 0 && col < world[0].length && world[row][col].isEmpty();
 //    }

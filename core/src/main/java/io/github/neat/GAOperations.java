@@ -1,8 +1,6 @@
 package io.github.neat;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Random;
+import java.util.*;
 
 import static io.github.neat.NodeType.HIDDEN;
 
@@ -19,25 +17,42 @@ public class GAOperations {
     }
     public static void addEdgeMutation(Genome g){
         ArrayList<Node> nodes = g.getNodeGenes();
-        Node a = nodes.get(r.nextInt(nodes.size()));
+        Node a;
         Node b;
 
-        int max = 10;
+        int max = 20;
         int i = 0;
 
         do {
+            a = nodes.get(r.nextInt(nodes.size()));
             b = nodes.get(r.nextInt(nodes.size()));
             i++;
-            if (i >= max) {
-                a = nodes.get(r.nextInt(nodes.size()));
-                break;
-            }
-        } while (g.areConnected(a, b));
-        // a == b check disallows self loops
+            if (i>max) return;
+        //disallow self loops, alr existing and cycle forming edges
+        } while (a==b || g.areConnected(a, b) || formsCycle(g,a,b));
+
         double weight = r.nextDouble(-1.0,1.001);
         int IN = INManager.getInstance().getInnovationID(a,b);
         Edge e = new Edge(a,b,weight,IN);
         g.addEdge(e);
+    }
+
+    private static boolean formsCycle(Genome g, Node a, Node b) {
+        HashSet<Node> visited = new HashSet<>();
+        //explore path from b to a; adding a->b then creates cycle
+        return dfs(g,b,a,visited);
+    }
+
+    private static boolean dfs(Genome g, Node current, Node target, HashSet<Node> visited){
+        if (current==target) return true;
+        visited.add(current);
+        for (Edge e: g.getOutgoingEdges(current)) {
+            Node next = e.getTargetNode();
+            if (!visited.contains(next) && dfs(g,e.getTargetNode(),target,visited)){
+                return true;
+            }
+        }
+        return false;
     }
 
     public static void addNodeMutation(Genome g){
@@ -57,8 +72,8 @@ public class GAOperations {
         int IN2 = INManager.getInstance().getInnovationID(n,target);
         Edge e1 = new Edge(src, n, 1.0, IN1);
         Edge e2 = new Edge(n, target, e.getWeight(), IN2);
-        edges.add(e1);
-        edges.add(e2);
+        g.addEdge(e1);
+        g.addEdge(e2);
         nodes.add(n);
     }
 
@@ -138,9 +153,9 @@ public class GAOperations {
         return nodeList;
     }
 
-    //child nodes reference parent edges assuming same weight is inherited
-    //check this!
-    private static ArrayList<Edge> collectGenes(ArrayList<Edge> m,
+
+    //this should be fixed as edges still reference old nodes
+    private static ArrayList<Edge> collectEdges(ArrayList<Edge> m,
                                                 ArrayList<Edge> d, ArrayList<Edge> e){
         ArrayList<Edge> childEdgeGenes = new ArrayList<>();
         childEdgeGenes.addAll(m);
@@ -148,6 +163,7 @@ public class GAOperations {
         childEdgeGenes.addAll(e);
         return childEdgeGenes;
     }
+
     public static void crossover(Genome p1, Genome p2){
         //double f1 = p1.getFitness();
         //double f2 = p2.getFitness();
@@ -157,7 +173,7 @@ public class GAOperations {
         getGenes(p1,p2,m,d,e);
 
         //collected edge genes - what about node genes ???
-        ArrayList<Edge> childEdgeGenes = collectGenes(m,d,e);
+        ArrayList<Edge> childEdgeGenes = collectEdges(m,d,e);
         ArrayList<Node> childNodeGenes = collectNodes(childEdgeGenes);
         //create offspring
         Genome child = new Genome(childNodeGenes, childEdgeGenes);

@@ -2,6 +2,7 @@ package io.github.neat;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 
 import static io.github.neat.NodeType.HIDDEN;
 import static io.github.neat.NodeType.OUTPUT;
@@ -26,10 +27,13 @@ public class Genome {
     public Genome() {
         nodeGenes = new ArrayList<>();
         edgeGenes = new ArrayList<>();
+        fitness = 1;
+    }
+
+    public void initFirstIndividual() {
         initInputNodes();
         initOutputNodes();
         initConnections();
-        fitness = 1;
     }
 
     public ArrayList<Node> getNodeGenes() {
@@ -140,7 +144,7 @@ public class Genome {
 
         for (int i = 0; i < numInputs; i++) {
             int nodeID = i;
-            Node n = new Node(nodeID, NodeType.INPUT, 1.0);
+            Node n = new Node(nodeID, NodeType.INPUT, 0);
             inputNodes.add(n);
             nodeGenes.add(n);
         }
@@ -155,7 +159,7 @@ public class Genome {
 
         for (int i = 0; i < numOutputs; i++) {
             int nodeID = startID + i;
-            Node n = new Node(nodeID, OUTPUT, 1.0);
+            Node n = new Node(nodeID, OUTPUT, 0);
             outputNodes.add(n);
             nodeGenes.add(n);
         }
@@ -196,5 +200,16 @@ public class Genome {
             output[i] = outputNodes.get(i).getActivationValue();
         }
         return output;
+    }
+
+    // get all outgoing edges from a given node
+    public List<Edge> getOutgoingEdges(Node node) {
+        List<Edge> outgoing = new ArrayList<>();
+        for (Edge e : this.edgeGenes) {
+            if (e.getSourceNode().equals(node)) {
+                outgoing.add(e);
+            }
+        }
+        return outgoing;
     }
 }

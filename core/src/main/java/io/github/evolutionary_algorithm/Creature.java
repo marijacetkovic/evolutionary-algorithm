@@ -1,5 +1,7 @@
 package io.github.evolutionary_algorithm;
 
+import io.github.neat.Genome;
+
 import java.util.List;
 import java.util.Random;
 
@@ -18,6 +20,9 @@ public class Creature {
 
     private final int foodType;
     private int health;
+    private Genome genome;
+    String[] actions = { "up", "down", "left", "right" };
+    int[][] actionLocation = { {-1,0}, {1,0}, {0,-1} , {0,1}};
 
     public Creature(int id, int i, int j, int foodType){
         this.id = id;
@@ -43,12 +48,31 @@ public class Creature {
     }
 
     public void takeAction(EventManager eventManager, World world) {
-        if (Config.eat&&shouldEat()) {
-            eatingAction(eventManager, world);
-        }
-        if (Config.breed&&shouldBreed()) {
-            breedingAction(eventManager, world);
-        }
+        //inject genome here
+        double[] input = this.getEnvironmentInput(world);
+        int decision = genome.calcPropagation(input);
+        System.out.println("Individuals decision to move: "+actions[decision]);
+        int i = actionLocation[decision][0];
+        int j = actionLocation[decision][1];
+
+        world.moveCreature(this,i,j);
+
+        //process possible event
+//        if (Config.eat) {
+//            checkEatingAction(eventManager, world);
+//        }
+//        if (Config.breed) {
+//            checkBreedingAction(eventManager, world);
+//        }
+
+    }
+
+    private double[] getEnvironmentInput(World world){
+        double foodDistance = world.getFoodDistance();
+        double creatureDistance = world.getCreatureDistance();
+        double energy = getHealth();
+
+        return new double[]{foodDistance,creatureDistance,energy};
     }
     private boolean shouldEat() {
         return r.nextDouble() < Config.eatProbability;
@@ -58,7 +82,7 @@ public class Creature {
     }
 
 
-    private void breedingAction(EventManager eventManager, World world) {
+    private void checkBreedingAction(EventManager eventManager, World world) {
         wantToMate = true;
         potentialMates = world.checkMateTile(this);
         if (!mateWithMe()&&wantToMate) {
@@ -72,7 +96,7 @@ public class Creature {
         }
     }
 
-    private void eatingAction(EventManager eventManager, World world){
+    private void checkEatingAction(EventManager eventManager, World world){
         if(world.world[i][j].contains(foodType)){
             //process eating food immediately
             eventManager.publish(new EatingEvent(this, i,j, world),true);
