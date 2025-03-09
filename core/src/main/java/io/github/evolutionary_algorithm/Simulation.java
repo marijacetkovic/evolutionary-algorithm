@@ -9,7 +9,7 @@ public class Simulation {
     }
 
     public void run(){
-        World world = new World(5);
+        World world = new World(Config.WORLD_SIZE);
         for (int i = 0; i < generations; i++) {
             boolean alive = world.behave();
             if(!alive) break;

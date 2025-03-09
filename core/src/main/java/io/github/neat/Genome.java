@@ -2,10 +2,11 @@ package io.github.neat;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Enumeration;
 import java.util.List;
 
-import static io.github.neat.NodeType.HIDDEN;
-import static io.github.neat.NodeType.OUTPUT;
+import static io.github.neat.Config.numInputs;
+import static io.github.neat.NodeType.*;
 
 
 public class Genome {
@@ -22,11 +23,27 @@ public class Genome {
     public Genome(ArrayList<Node> nodeGenes, ArrayList<Edge> edgeGenes) {
         this.nodeGenes = nodeGenes;
         this.edgeGenes = edgeGenes;
+        inputNodes = new ArrayList<>();
+        hiddenNodes = new ArrayList<>();
+        outputNodes = new ArrayList<>();
+        categorizeNodes();
+    }
+
+    private void categorizeNodes() {
+        for (Node n:nodeGenes) {
+            if (n.nodeType == INPUT) inputNodes.add(n);
+            else if (n.nodeType == HIDDEN) hiddenNodes.add(n);
+            else outputNodes.add(n);
+        }
     }
 
     public Genome() {
         nodeGenes = new ArrayList<>();
         edgeGenes = new ArrayList<>();
+        inputNodes = new ArrayList<>();
+        hiddenNodes = new ArrayList<>();
+        outputNodes = new ArrayList<>();
+        initFirstIndividual();
         fitness = 1;
     }
 
@@ -96,7 +113,7 @@ public class Genome {
     }
 
     public ArrayList<Edge> getGenesSorted(){
-        ArrayList<Edge> e = new ArrayList<Edge>(edgeGenes);
+        ArrayList<Edge> e = new ArrayList<>(edgeGenes);
         e.sort(Comparator.comparingInt(Edge::getInnovationNumber));
         return e;
     }
@@ -109,6 +126,9 @@ public class Genome {
     }
 
     public int calcPropagation(double[] input) {
+        if (input.length< numInputs){
+            throw new RuntimeException("Required input size is "+ numInputs);
+        }
         setInputNodeValue(input);
         propagateLayer(HIDDEN);
         propagateLayer(OUTPUT);
@@ -124,10 +144,10 @@ public class Genome {
             }
         }
     }
-
+    //choose max output
     private int parseOutput(double[] output){
         int idx = -1;
-        double max = -1;
+        double max = Double.NEGATIVE_INFINITY;
         for (int i = 0; i < output.length; i++) {
             if (output[i]>max){
                 max = output[i];
@@ -137,9 +157,7 @@ public class Genome {
         return idx;
     }
 
-    // for now 3 input nodes: food, nearest creature, energy level
     private void initInputNodes() {
-        inputNodes = new ArrayList<>();
         int numInputs = Config.numInputs;
 
         for (int i = 0; i < numInputs; i++) {
@@ -153,9 +171,8 @@ public class Genome {
 
     // decisions creature makes : eat, breed, move?, do nothing
     private void initOutputNodes() {
-        outputNodes = new ArrayList<>();
         int numOutputs = Config.numOutputs;
-        int startID = Config.numInputs;
+        int startID = numInputs;
 
         for (int i = 0; i < numOutputs; i++) {
             int nodeID = startID + i;
@@ -187,6 +204,13 @@ public class Genome {
 
 
     private void setInputNodeValue(double[] input) {
+//        System.out.println("num inputs "+numInputs);
+//        System.out.println("input node size"+inputNodes.size());
+//        for (Node n:inputNodes) {
+//            System.out.println(n.getId() + " " +n.getNodeType() );
+//        }
+
+
         for (int i = 0; i < inputNodes.size(); i++) {
             inputNodes.get(i).setActivationValue(input[i]);
         }
@@ -212,4 +236,9 @@ public class Genome {
         }
         return outgoing;
     }
+
+    public void setFitness(double v) {
+        this.fitness = v;
+    }
+
 }

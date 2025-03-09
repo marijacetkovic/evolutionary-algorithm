@@ -14,6 +14,13 @@ public class Edge {
         this.enabled = true;
         this.innovationNumber = innovationNumber;
     }
+    public Edge (Edge originalEdge, Node src, Node target){
+        this.sourceNode = src;
+        this.targetNode = target;
+        this.weight = originalEdge.getWeight();
+        this.enabled = originalEdge.isEnabled();
+        this.innovationNumber = originalEdge.getInnovationNumber();
+    }
 
 
     public Node getSourceNode() {

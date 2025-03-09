@@ -5,8 +5,9 @@ import io.github.neat.Genome;
 import java.util.List;
 import java.util.Random;
 
+import static io.github.evolutionary_algorithm.Config.inputFeatures;
+
 public class Creature {
-    private Gene gene;
     private int id;
     //position within the world
     private int i;
@@ -21,8 +22,8 @@ public class Creature {
     private final int foodType;
     private int health;
     private Genome genome;
-    String[] actions = { "up", "down", "left", "right" };
-    int[][] actionLocation = { {-1,0}, {1,0}, {0,-1} , {0,1}};
+    String[] actions = { "up", "down", "left", "right", "stay"};
+    int[][] actionLocation = { {-1,0}, {1,0}, {0,-1} , {0,1}, {0,0}};
 
     public Creature(int id, int i, int j, int foodType){
         this.id = id;
@@ -32,11 +33,20 @@ public class Creature {
         this.wantToMate = false;
         this.mate = null;
         this.eatsFood = true;
-        this.gene = new Gene();
-        this.health = 10;
+        this.genome = new Genome();
+        this.health = Config.INITIAL_HEALTH;
         System.out.println("Spawned a creature at positions " +i+","+j);
     }
-
+    public Creature(int id, int i, int j, Genome genome){
+        this.id = id;
+        this.i = i;
+        this.j = j;
+        this.foodType = -1;
+        this.mate = null;
+        this.genome = genome;
+        this.health = Config.INITIAL_HEALTH;
+        System.out.println("Spawned a creature at positions " +i+","+j);
+    }
 
 
     public int getFoodType() {
@@ -50,29 +60,60 @@ public class Creature {
     public void takeAction(EventManager eventManager, World world) {
         //inject genome here
         double[] input = this.getEnvironmentInput(world);
+        //double[] input = getRndInput();
         int decision = genome.calcPropagation(input);
         System.out.println("Individuals decision to move: "+actions[decision]);
-        int i = actionLocation[decision][0];
-        int j = actionLocation[decision][1];
+        int i = this.i+actionLocation[decision][0];
+        int j = this.j+actionLocation[decision][1];
 
         world.moveCreature(this,i,j);
 
         //process possible event
-//        if (Config.eat) {
-//            checkEatingAction(eventManager, world);
-//        }
-//        if (Config.breed) {
-//            checkBreedingAction(eventManager, world);
-//        }
+        if (Config.eat) {
+            checkEatingAction(eventManager, world);
+        }
+        if (Config.breed) {
+            checkBreedingAction(eventManager, world);
+        }
+    }
+
+    private double[] getEnvironmentInput(World world) {
+        double[] inputData = new double[inputFeatures];
+        int index = 0;
+
+        for (int i = -1; i <= 1; i++) {
+            for (int j = -1; j <= 1; j++) {
+                int x = this.i + i;
+                int y = this.j + j;
+
+                if (world.isWithinBounds(x,y)) {
+                    Tile tile = world.world[x][y];
+                    inputData[index++] = tile.hasFood() ? 1 : 0;
+                    inputData[index++] = tile.hasCreature(id) ? 1 : 0;
+                } else {
+                    // default
+                    inputData[index++] = 0;
+                    inputData[index++] = 0;
+                }
+            }
+        }
+        inputData[index] = health;
+
+        return inputData;
 
     }
 
-    private double[] getEnvironmentInput(World world){
-        double foodDistance = world.getFoodDistance();
-        double creatureDistance = world.getCreatureDistance();
-        double energy = getHealth();
+//    private double[] getEnvironmentInput(World world){
+//        double foodDistance = world.getFoodDistance();
+//        double creatureDistance = world.getCreatureDistance();
+//        double energy = getHealth();
+//
+//        return new double[]{foodDistance,creatureDistance,energy};
+//    }
 
-        return new double[]{foodDistance,creatureDistance,energy};
+    public double[] getRndInput() {
+        Random random = new Random();
+        return new double[]{random.nextDouble(100), random.nextDouble(100), random.nextDouble(100)};
     }
     private boolean shouldEat() {
         return r.nextDouble() < Config.eatProbability;
@@ -82,13 +123,16 @@ public class Creature {
     }
 
 
-    private void checkBreedingAction(EventManager eventManager, World world) {
-        wantToMate = true;
-        potentialMates = world.checkMateTile(this);
-        if (!mateWithMe()&&wantToMate) {
-            this.eatsFood = true;
+    private void checkEatingAction(EventManager eventManager, World world){
+        if(world.world[i][j].getFoodItems().size()>0){
+            //process eating food immediately
+            eventManager.publish(new EatingEvent(this, i,j, world),true);
         }
-        else{
+    }
+    private void checkBreedingAction(EventManager eventManager, World world) {
+        // wantToMate = true;
+        potentialMates = world.checkMateTile(this);
+        if(mateWithMe()){
             System.out.println("Creature " + id + " found mate " + mate.getId() + " at " + i + " " + j);
             eventManager.publish(new BreedingEvent(this, mate, world),false);
             mate.resetMates();
@@ -96,21 +140,13 @@ public class Creature {
         }
     }
 
-    private void checkEatingAction(EventManager eventManager, World world){
-        if(world.world[i][j].contains(foodType)){
-            //process eating food immediately
-            eventManager.publish(new EatingEvent(this, i,j, world),true);
-        }
-    }
-
-
     private boolean mateWithMe() {
         //System.out.println("Potential mates for "+id);
         for (Creature c : potentialMates) {
             //System.out.println("Mate "+c.getId());
             if (c!=null && c.hasMate(id)) {
                 this.mate = c;
-                this.wantToMate = false;
+                //this.wantToMate = false;
                 return true;
             }
         }
@@ -144,8 +180,8 @@ public class Creature {
         return j;
     }
 
-    public Gene getGene(){
-        return gene;
+    public Genome getGenome(){
+        return genome;
     }
 
     public void updatePosition(int i, int j){
@@ -153,9 +189,7 @@ public class Creature {
         this.j = j;
     }
 
-    public void setGene(int value) {
-        this.gene.setGene(value);
-    }
+
 
     public boolean checkHealth(World world) {
         health--;

@@ -7,6 +7,15 @@ import static io.github.neat.NodeType.HIDDEN;
 public class GAOperations {
     static Random r = new Random(4);
 
+    public static Genome createOffspring(Genome p1, Genome p2){
+        Genome child = crossover(p1,p2);
+        mutate(child);
+        System.out.println(p1.getNodeGenes().size()+" node nr parent");
+        System.out.println(child.getNodeGenes().size()+" node nr child");
+        return child;
+    }
+
+    //change the probabilities here
     public static void mutate(Genome g){
         if(r.nextDouble()>0.5){
             addEdgeMutation(g);
@@ -137,34 +146,39 @@ public class GAOperations {
         }
 
     }
-    //making node copies so child nodes cannot affect parent nodes for propagation
-    private static ArrayList<Node> collectNodes(ArrayList<Edge> edges) {
+
+    public static Object[] collectEdgesAndNodes(ArrayList<Edge> m, ArrayList<Edge> d, ArrayList<Edge> e) {
+        ArrayList<Edge> allEdges = new ArrayList<>();
+        allEdges.addAll(m);
+        allEdges.addAll(d);
+        allEdges.addAll(e);
+
         HashSet<Node> uniqueNodes = new HashSet<>();
-        for (Edge e : edges) {
-            uniqueNodes.add(e.getSourceNode());
-            uniqueNodes.add(e.getTargetNode());
+        for (Edge edge : allEdges) {
+            uniqueNodes.add(edge.getSourceNode());
+            uniqueNodes.add(edge.getTargetNode());
         }
 
-        ArrayList<Node> nodeList = new ArrayList<>();
+        HashMap<Node, Node> nodeMap = new HashMap<>();
         for (Node originalNode : uniqueNodes) {
-            nodeList.add(new Node(originalNode));
+            Node copiedNode = new Node(originalNode);
+            nodeMap.put(originalNode, copiedNode);
         }
 
-        return nodeList;
+        ArrayList<Edge> childEdges = new ArrayList<>();
+        for (Edge edge : allEdges) {
+            Node sourceNode = nodeMap.get(edge.getSourceNode());
+            Node targetNode = nodeMap.get(edge.getTargetNode());
+            Edge copiedEdge = new Edge(edge,sourceNode, targetNode);
+            childEdges.add(copiedEdge);
+        }
+
+        ArrayList<Node> childNodes = new ArrayList<>(nodeMap.values());
+
+        return new Object[]{childEdges, childNodes};
     }
 
-
-    //this should be fixed as edges still reference old nodes
-    private static ArrayList<Edge> collectEdges(ArrayList<Edge> m,
-                                                ArrayList<Edge> d, ArrayList<Edge> e){
-        ArrayList<Edge> childEdgeGenes = new ArrayList<>();
-        childEdgeGenes.addAll(m);
-        childEdgeGenes.addAll(d);
-        childEdgeGenes.addAll(e);
-        return childEdgeGenes;
-    }
-
-    public static void crossover(Genome p1, Genome p2){
+    public static Genome crossover(Genome p1, Genome p2){
         //double f1 = p1.getFitness();
         //double f2 = p2.getFitness();
         ArrayList<Edge> m = new ArrayList<>();
@@ -173,15 +187,17 @@ public class GAOperations {
         getGenes(p1,p2,m,d,e);
 
         //collected edge genes - what about node genes ???
-        ArrayList<Edge> childEdgeGenes = collectEdges(m,d,e);
-        ArrayList<Node> childNodeGenes = collectNodes(childEdgeGenes);
+        Object[] result = collectEdgesAndNodes(m,d,e);
+        ArrayList<Edge> childEdgeGenes = (ArrayList<Edge>) result[0];
+        ArrayList<Node> childNodeGenes = (ArrayList<Node>) result[1];
         //create offspring
         Genome child = new Genome(childNodeGenes, childEdgeGenes);
 
         //assign offspring a species through species manager
-        SpeciesManager speciesManager = SpeciesManager.getInstance();
-        speciesManager.addGenome(child);
+        //SpeciesManager speciesManager = SpeciesManager.getInstance();
+        //speciesManager.addGenome(child);
 
+        return child;
     }
 
 

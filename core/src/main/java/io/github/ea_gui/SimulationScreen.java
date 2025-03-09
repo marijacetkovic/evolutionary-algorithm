@@ -19,7 +19,7 @@ public class SimulationScreen implements Screen {
 
     @Override
     public void show() {
-        world = new World(10);
+        world = new World(Config.WORLD_SIZE);
         worldRenderer = new WorldRenderer(world,game);
     }
     float time;

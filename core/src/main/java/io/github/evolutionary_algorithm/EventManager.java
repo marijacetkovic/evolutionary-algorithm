@@ -11,6 +11,7 @@ public class EventManager {
         this.world = world;
     }
 
+
     public void publish(Event e, boolean processNow){
         if(processNow) e.process();
         else events.add(e);

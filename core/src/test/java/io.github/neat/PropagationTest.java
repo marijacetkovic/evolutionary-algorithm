@@ -1,6 +1,10 @@
 package io.github.neat;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+
 import static io.github.neat.NodeType.*;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -103,14 +107,5 @@ class PropagationTest {
         //System.out.println(expectedOutputNodeValue1);
         assertEquals(expectedOutputNodeValue1, node3.getActivationValue(), 0.001);
         assertEquals(expectedOutputNodeValue2, node4.getActivationValue(), 0.001);
-    }
-
-    @Test
-    public void testDecisionMaking(){
-        Genome g = new Genome();
-        Individual i = new Individual(0, g);
-
-        double[] input = {1,3,5};
-        i.makeDecision(input);
     }
 }

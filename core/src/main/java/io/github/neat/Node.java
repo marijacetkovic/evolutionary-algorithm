@@ -1,6 +1,7 @@
 package io.github.neat;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class Node {
     int id;
@@ -57,10 +58,37 @@ public class Node {
     }
 
     public void activate(){
-        //activation function should be added!!
+        if (nodeType == NodeType.HIDDEN) {
+            activationValue = relu(activationValue);
+        } else if (nodeType == NodeType.OUTPUT) {
+            activationValue = sigmoid(activationValue);
+        }
+    }
+
+    public double relu(double x) {
+        return Math.max(0, x);
+    }
+
+    public double sigmoid(double x) {
+        return 1.0 / (1.0 + Math.exp(-x));
     }
 
     public ArrayList<Edge> getPrev() {
         return prev;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Node node = (Node) obj;
+        return Objects.equals(id, node.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+
 }

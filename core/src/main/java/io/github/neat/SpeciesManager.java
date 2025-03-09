@@ -5,6 +5,7 @@ public class SpeciesManager {
     private static SpeciesManager speciesManager;
     private ArrayList<Species> speciesList;
     private double threshold;
+    private Genome lastAddedGenome;
 
     private SpeciesManager() {
         this.speciesList = new ArrayList<>();
@@ -19,6 +20,7 @@ public class SpeciesManager {
 
     public Species addGenome(Genome genome) {
         //go through species and if distance is below threshold assign genome tthe species
+        lastAddedGenome = genome;
         for (Species species : speciesList) {
             if (species.compatibilityDistance(genome) < threshold) {
                 species.addMember(genome);
@@ -35,5 +37,7 @@ public class SpeciesManager {
     }
 
 
-
+    public Genome getLastAddedGenome() {
+        return lastAddedGenome;
+    }
 }

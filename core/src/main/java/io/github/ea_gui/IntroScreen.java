@@ -21,14 +21,30 @@ public class IntroScreen implements Screen {
     @Override
     public void render(float delta) {
         ScreenUtils.clear(Color.BLACK);
-
         game.viewport.apply();
-        game.batch.setProjectionMatrix(game.viewport.getCamera().combined);
+        game.batch.setProjectionMatrix(game.camera.combined);
+
+        String title = "Welcome to the Evolution Simulation!";
+        String subtitle = "Tap anywhere to begin!";
 
         game.batch.begin();
+
         game.font.setColor(Color.RED);
-        game.font.draw(game.batch, "Welcome to the Evolution Simulation! ", 5, 1.5f);
-        game.font.draw(game.batch, "Tap anywhere to begin!", 1, 1);
+
+        float titleWidth = game.font.getRegion().getRegionWidth();
+        float titleHeight = game.font.getRegion().getRegionHeight();
+        float titleX = (Gdx.graphics.getWidth() - titleWidth) / 2;
+        float titleY = Gdx.graphics.getHeight() / 2 + titleHeight / 2;
+        game.font.draw(game.batch, title, titleX, titleY);
+
+        game.font.setColor(Color.RED);
+
+        float subtitleWidth = game.font.getRegion().getRegionWidth();
+        float subtitleHeight = game.font.getRegion().getRegionHeight();
+        float subtitleX = (Gdx.graphics.getWidth() - subtitleWidth) / 2;
+        float subtitleY = titleY - titleHeight+40;
+        game.font.draw(game.batch, subtitle, subtitleX, subtitleY);
+
         game.batch.end();
 
         if (Gdx.input.isTouched()) {
