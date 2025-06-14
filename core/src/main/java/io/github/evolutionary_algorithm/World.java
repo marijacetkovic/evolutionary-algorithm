@@ -2,6 +2,7 @@ package io.github.evolutionary_algorithm;
 
 import io.github.neat.Genome;
 
+import java.lang.reflect.Array;
 import java.util.*;
 
 public class World {
@@ -17,23 +18,27 @@ public class World {
         FoodType.MEAT, -1,
         FoodType.PLANT, -2
     );
+    private Creature bestFitnessCreature;
+    private double bestFitness;
+    private ArrayList<Creature> prevPopulation;
+    private int generation;
 
     public World(int n) {
         this.size = n;
         this.world = new Tile[n][n];    // Tile[][] matrix
         this.population = new ArrayList<>();
+        this.prevPopulation = new ArrayList<>();
         this.food = new ArrayList<>();
         this.eventManager = new EventManager(this);
         this.lastId = 0;
+        this.generation = 0;
         this.directions = Arrays.asList(
             new int[]{1, 0},
             new int[]{0, 1},
             new int[]{0, -1},
             new int[]{-1, 0}
         );
-        init();
-        spawnCreatures();
-        spawnFood(Config.NUM_FOOD);
+        reset();
         //printMatrix();
     }
 
@@ -45,7 +50,16 @@ public class World {
         return population;
     }
 
-    private void init() {
+    public void reset(){
+        this.lastId = 0;
+        initializeTiles();
+        //spawnCreatures();
+        this.food = new ArrayList<>();
+        spawnFood(Config.NUM_FOOD);
+        this.bestFitness = Double.NEGATIVE_INFINITY;
+    }
+
+    private void initializeTiles() {
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
                 world[i][j] = new Tile();
@@ -57,21 +71,21 @@ public class World {
         return food;
     }
 
-    private void spawnCreatures() {
-        for (int k = 0; k < Config.NUM_CREATURES; k++) {
-            spawnCreature();
+    public void spawnCreatures(ArrayList<Genome> genomes) {
+        for (Genome g: genomes) {
+            spawnCreature(g);
         }
     }
 
-    public Creature spawnCreature() {
+    public Creature spawnCreature(Genome g) {
         int i, j;
         if (lastId == Config.MAX_CREATURES) return null;
         do {
-            i = r.nextInt(size);
-            j = r.nextInt(size);
+            i = r.nextInt(size/2);
+            j = r.nextInt(size/2);
         } while (!world[i][j].getCreatures().isEmpty());
 
-        Creature c = new Creature(lastId, i, j, getRandomFoodCode());
+        Creature c = new Creature(lastId, i, j, getRandomFoodCode(), g);
         world[i][j].addCreature(lastId);
         population.add(c);
         lastId++;
@@ -85,7 +99,7 @@ public class World {
             j = r.nextInt(size);
         } while (!world[i][j].getCreatures().isEmpty());
 
-        Creature c = new Creature(lastId, i, j, g);
+        Creature c = new Creature(lastId, i, j, getRandomFoodCode(),g);
         world[i][j].addCreature(lastId);
         population.add(c);
         lastId++;
@@ -99,7 +113,7 @@ public class World {
         return -1;
     }
 
-    private void spawnFood(int n) {
+    private void spawnFoodL(int n) {
         for (int k = 0; k < n; k++) {
             int i, j;
             do {
@@ -111,61 +125,122 @@ public class World {
             world[i][j].addFood(foodCode);
         }
     }
+    private void spawnFood(int n) {
+        int spawnZoneType = r.nextInt(3);
+        System.out.println("SPAWNZONE TYPE "+spawnZoneType);
+        int quadrantX = r.nextInt(2);
+        int quadrantY = r.nextInt(2);
+        for (int k = 0; k < n; k++) {
+            int i, j;
+            switch (spawnZoneType) {
+                case 0:
+                    i = r.nextInt(size / 2) + (quadrantX * size / 2);
+                    j = r.nextInt(size / 2) + (quadrantY * size / 2);
+                    break;
+
+                case 1:
+                    i = r.nextInt(size / 4) + (quadrantX * size / 2);
+                    j = r.nextInt(size / 4) + (quadrantX * size / 2);
+                    break;
+                default:
+                    i = r.nextInt(size);
+                    j = r.nextInt(size);
+                    break;
+            }
+           // } while (world[i][j].getFoodItems().contains(-2));
+
+            int foodCode = getRandomFoodCode();
+            food.add(new Food(i, j, 100, foodCode));
+            world[i][j].addFood(foodCode);
+        }
+    }
+
 
     public boolean behave() {
         //printMatrix();
         population.forEach(c -> c.takeAction(eventManager, this));
+        population.forEach(c -> c.evaluateAction(this));
         removeDead();
         eventManager.process();
+        updateBestFitnessIndividual();
         checkFoodQuantity();
+        updateBreedingThreshold();
         return !population.isEmpty();
+    }
+
+    ArrayList<Genome> getBestIndividuals(int k) {
+        prevPopulation.sort(Comparator.comparingInt(Creature::getFitness).reversed());
+        ArrayList<Genome> bestGenomes = new ArrayList<>();
+        for (int i = 0; i < Math.min(k, prevPopulation.size()); i++) {
+            bestGenomes.add(prevPopulation.get(i).getGenome());
+        }
+        return bestGenomes;
+    }
+
+
+    private void updateBreedingThreshold() {
+        Config.breedingThreshold = bestFitnessCreature.getFitness() / 2;
     }
 
     private void removeDead() {
         List<Creature> toRemove = new ArrayList<>();
         for (Creature c : population) {
-            //move everyone at the end of a round by one place
-            //should change this for genome
-            // moveCreatureRandom(c);
-            //check everyones health
             if (c.checkHealth(this)) toRemove.add(c);
         }
         population.removeAll(toRemove);
+        prevPopulation.addAll(toRemove);
         if (population.isEmpty()) System.out.println("Whole generation died.");
     }
+
+    private void updateBestFitnessIndividual() {
+        Creature best = null;
+        double highestFitness = bestFitness;
+
+        for (Creature c : population) {
+            if (c.getFitness() > highestFitness) {
+                highestFitness = c.getFitness();
+                best = c;
+            }
+        }
+
+        if (best != null) {
+            bestFitnessCreature = best;
+            bestFitness = bestFitnessCreature.getFitness();
+            System.out.println("Updated best fitness creature"+bestFitnessCreature.getId()+" with fitness: " + highestFitness);
+        }
+    }
     private void checkFoodQuantity(){
-        System.out.println("food size"+food.size());
         if (food.size()<Config.NUM_FOOD/2) {
-            System.out.println("low on food");
             spawnFood(Config.NUM_FOOD);
         }
     }
-    public void printMatrix() {
-        System.out.println("-----------------------------------");
-        for (int i = 0; i < world.length; i++) {
-            System.out.print("| ");
-            for (int j = 0; j < world[i].length; j++) {
-                Tile tile = world[i][j];
-                if (tile.getCreatures().isEmpty()) {
-                    System.out.print("    | ");
-                } else {
-                    System.out.print(tile.getCreatures() + " | ");
-                }
-            }
-            System.out.println();
-            System.out.println("---------------------------------");
-        }
-    }
+
+//    public void printMatrix() {
+//        System.out.println("-----------------------------------");
+//        for (int i = 0; i < world.length; i++) {
+//            System.out.print("| ");
+//            for (int j = 0; j < world[i].length; j++) {
+//                Tile tile = world[i][j];
+//                if (tile.getCreatures().isEmpty()) {
+//                    System.out.print("    | ");
+//                } else {
+//                    System.out.print(tile.getCreatures() + " | ");
+//                }
+//            }
+//            System.out.println();
+//            System.out.println("---------------------------------");
+//        }
+//    }
 
     public void moveCreature(Creature creature, int i, int j) {
         if (!isWithinBounds(i, j)) {
-            System.out.println("Out of bounds, couldn't move");
+            //System.out.println("Out of bounds, couldn't move");
             return;
         }
         world[i][j].addCreature(creature.getId());
         remove(creature.getI(), creature.getJ(), creature.getId());
         creature.updatePosition(i, j);
-        System.out.println("Creature " + creature.getId() + " H:"+creature.getHealth()+" moved to " + i + "," + j);
+        //System.out.println("Creature " + creature.getId() + " H:"+creature.getHealth()+" moved to " + i + "," + j);
 
     }
 
@@ -224,6 +299,14 @@ public class World {
         public Creature findCreatureById(Integer id){
            return population.stream().filter(c->c.getId()==id).findFirst().orElse(null);
         }
+
+    public boolean isPopulationAlive() {
+        return !population.isEmpty();
+    }
+
+    public int increaseGeneration() {
+        return ++this.generation;
+    }
 //    private int[] checkAdjacentTile(Creature c){
 //        int i = c.getI();
 //        int j = c.getJ();

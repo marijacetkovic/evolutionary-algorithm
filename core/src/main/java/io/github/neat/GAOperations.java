@@ -2,6 +2,8 @@ package io.github.neat;
 
 import java.util.*;
 
+import static io.github.neat.Config.TOURNAMENT_SIZE;
+import static io.github.neat.Config.structuralMutation;
 import static io.github.neat.NodeType.HIDDEN;
 
 public class GAOperations {
@@ -17,12 +19,19 @@ public class GAOperations {
 
     //change the probabilities here
     public static void mutate(Genome g){
-        if(r.nextDouble()>0.5){
-            addEdgeMutation(g);
+        if (!structuralMutation){
+            if(r.nextDouble()<0.7) {
+                perturbWeights(g);
+            }
         }
-        else{
-            addNodeMutation(g);
+        else {
+            if (r.nextDouble() < 0.9) {
+                addEdgeMutation(g);
+            } else {
+                addNodeMutation(g);
+            }
         }
+        g.topologicallySort();
     }
     public static void addEdgeMutation(Genome g){
         ArrayList<Node> nodes = g.getNodeGenes();
@@ -38,22 +47,23 @@ public class GAOperations {
             i++;
             if (i>max) return;
         //disallow self loops, alr existing and cycle forming edges
-        } while (a==b || g.areConnected(a, b) || formsCycle(g,a,b));
+        } while (a.equals(b) || g.areConnected(a, b) || formsCycle(g,a,b));
 
         double weight = r.nextDouble(-1.0,1.001);
         int IN = INManager.getInstance().getInnovationID(a,b);
         Edge e = new Edge(a,b,weight,IN);
         g.addEdge(e);
+        System.out.println("Mutated edge");
     }
 
-    private static boolean formsCycle(Genome g, Node a, Node b) {
+    static boolean formsCycle(Genome g, Node a, Node b) {
         HashSet<Node> visited = new HashSet<>();
         //explore path from b to a; adding a->b then creates cycle
         return dfs(g,b,a,visited);
     }
 
     private static boolean dfs(Genome g, Node current, Node target, HashSet<Node> visited){
-        if (current==target) return true;
+        if (current.equals(target)) return true;
         visited.add(current);
         for (Edge e: g.getOutgoingEdges(current)) {
             Node next = e.getTargetNode();
@@ -64,6 +74,20 @@ public class GAOperations {
         return false;
     }
 
+  /*  public static void weightMutation(Genome g){
+        ArrayList<Edge> edges = g.getEdgeGenes();
+        Edge e = edges.get(r.nextInt(edges.size()));
+        e.setWeight(g.randomWeight());
+    }*/
+      public static void perturbWeights(Genome g) {
+          for (Edge e : g.getEdgeGenes()) {
+              if (r.nextDouble() < 0.8) {
+                  e.setWeight(e.getWeight() + r.nextGaussian() * 0.1);
+              }
+          }
+      }
+
+
     public static void addNodeMutation(Genome g){
         ArrayList<Edge> edges = g.getEdgeGenes();
         ArrayList<Node> nodes = g.getNodeGenes();
@@ -72,7 +96,8 @@ public class GAOperations {
             e = edges.get(r.nextInt(edges.size()));
         }
         while(!e.isEnabled());
-        e.toggleEnabled();
+        e.disable();
+        System.out.println("Split edge "+e.getInnovationNumber());
         int id = INManager.getInstance().getNodeID(e.getInnovationNumber());
         Node n = new Node(id, HIDDEN,0.0);
         Node src = e.getSourceNode();
@@ -84,6 +109,8 @@ public class GAOperations {
         g.addEdge(e1);
         g.addEdge(e2);
         nodes.add(n);
+        System.out.println("Mutated node");
+
     }
 
 
@@ -153,27 +180,31 @@ public class GAOperations {
         allEdges.addAll(d);
         allEdges.addAll(e);
 
-        HashSet<Node> uniqueNodes = new HashSet<>();
-        for (Edge edge : allEdges) {
-            uniqueNodes.add(edge.getSourceNode());
-            uniqueNodes.add(edge.getTargetNode());
-        }
+        // Track nodes by ID to prevent duplicates
+        HashMap<Integer, Node> idToNode = new HashMap<>();
 
-        HashMap<Node, Node> nodeMap = new HashMap<>();
-        for (Node originalNode : uniqueNodes) {
-            Node copiedNode = new Node(originalNode);
-            nodeMap.put(originalNode, copiedNode);
+        for (Edge edge : allEdges) {
+            Node source = edge.getSourceNode();
+            Node target = edge.getTargetNode();
+
+            if (!idToNode.containsKey(source.getId())) {
+                idToNode.put(source.getId(), new Node(source));
+            }
+
+            if (!idToNode.containsKey(target.getId())) {
+                idToNode.put(target.getId(), new Node(target));
+            }
         }
 
         ArrayList<Edge> childEdges = new ArrayList<>();
         for (Edge edge : allEdges) {
-            Node sourceNode = nodeMap.get(edge.getSourceNode());
-            Node targetNode = nodeMap.get(edge.getTargetNode());
-            Edge copiedEdge = new Edge(edge,sourceNode, targetNode);
+            Node source = idToNode.get(edge.getSourceNode().getId());
+            Node target = idToNode.get(edge.getTargetNode().getId());
+            Edge copiedEdge = new Edge(edge, source, target);
             childEdges.add(copiedEdge);
         }
 
-        ArrayList<Node> childNodes = new ArrayList<>(nodeMap.values());
+        ArrayList<Node> childNodes = new ArrayList<>(idToNode.values());
 
         return new Object[]{childEdges, childNodes};
     }
@@ -200,6 +231,19 @@ public class GAOperations {
         return child;
     }
 
+    public static Genome tournamentSelect(List<Genome> bestGenomes) {
+        Genome best = null;
+        double bestFitness = Double.NEGATIVE_INFINITY;
+
+        for (int i = 0; i < TOURNAMENT_SIZE; i++) {
+            Genome candidate = bestGenomes.get(r.nextInt(bestGenomes.size()));
+            if (candidate.getFitness() > bestFitness) {
+                best = candidate;
+                bestFitness = candidate.getFitness();
+            }
+        }
+        return best;
+    }
 
 
 }

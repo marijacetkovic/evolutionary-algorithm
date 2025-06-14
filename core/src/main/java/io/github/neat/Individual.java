@@ -38,17 +38,5 @@ public class Individual {
         int decision = genome.calcPropagation(input);
         System.out.println("Individuals decision: "+actions[decision]);
     }
-//    private void calcPropagation(){
-//        propagateLayer(HIDDEN);
-//        propagateLayer(OUTPUT);
-//    }
-//
-//    private void propagateLayer(NodeType layer){
-//        for (Node n: nodes) {
-//            if (n.getNodeType() == layer){
-//                n.calculateValue();
-//                n.activate();
-//            }
-//        }
-//    }
+
 }

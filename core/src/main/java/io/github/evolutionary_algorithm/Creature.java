@@ -5,7 +5,8 @@ import io.github.neat.Genome;
 import java.util.List;
 import java.util.Random;
 
-import static io.github.evolutionary_algorithm.Config.inputFeatures;
+import static io.github.evolutionary_algorithm.Config.*;
+import static io.github.evolutionary_algorithm.Config.Phase.AUTO;
 
 public class Creature {
     private int id;
@@ -22,31 +23,27 @@ public class Creature {
     private final int foodType;
     private int health;
     private Genome genome;
-    String[] actions = { "up", "down", "left", "right", "stay"};
-    int[][] actionLocation = { {-1,0}, {1,0}, {0,-1} , {0,1}, {0,0}};
+    String[] actions = { "left", "up", "down", "right"};
+    int[][] actionLocation = { {0,-1}, {-1,0}, {1,0}, {0,1}};
+    private boolean hasEaten;
+    private int fitness;
+    private double closestFoodDistance;
+    private double prevFoodDistance;
 
-    public Creature(int id, int i, int j, int foodType){
+    public Creature(int id, int i, int j, int foodType, Genome genome){
         this.id = id;
         this.i = i;
         this.j = j;
         this.foodType = foodType;
-        this.wantToMate = false;
-        this.mate = null;
-        this.eatsFood = true;
-        this.genome = new Genome();
-        this.health = Config.INITIAL_HEALTH;
-        System.out.println("Spawned a creature at positions " +i+","+j);
-    }
-    public Creature(int id, int i, int j, Genome genome){
-        this.id = id;
-        this.i = i;
-        this.j = j;
-        this.foodType = -1;
         this.mate = null;
         this.genome = genome;
+        this.hasEaten = false;
         this.health = Config.INITIAL_HEALTH;
+        this.fitness = 0;
         System.out.println("Spawned a creature at positions " +i+","+j);
     }
+
+
 
 
     public int getFoodType() {
@@ -62,17 +59,15 @@ public class Creature {
         double[] input = this.getEnvironmentInput(world);
         //double[] input = getRndInput();
         int decision = genome.calcPropagation(input);
-        System.out.println("Individuals decision to move: "+actions[decision]);
+        //System.out.println("Individuals decision to move: "+actions[decision]);
         int i = this.i+actionLocation[decision][0];
         int j = this.j+actionLocation[decision][1];
 
         world.moveCreature(this,i,j);
 
         //process possible event
-        if (Config.eat) {
-            checkEatingAction(eventManager, world);
-        }
-        if (Config.breed) {
+        checkEatingAction(eventManager, world);
+        if (currentPhase==AUTO && fitness>breedingThreshold){
             checkBreedingAction(eventManager, world);
         }
     }
@@ -83,13 +78,14 @@ public class Creature {
 
         for (int i = -1; i <= 1; i++) {
             for (int j = -1; j <= 1; j++) {
+                if (i == 0 && j == 0) continue;
                 int x = this.i + i;
                 int y = this.j + j;
 
                 if (world.isWithinBounds(x,y)) {
                     Tile tile = world.world[x][y];
-                    inputData[index++] = tile.hasFood() ? 1 : 0;
-                    inputData[index++] = tile.hasCreature(id) ? 1 : 0;
+                    inputData[index++] = tile.hasFood() ? 1 : -1;
+                    inputData[index++] = tile.hasCreature(id) ? -0.5 : 0.5;
                 } else {
                     // default
                     inputData[index++] = 0;
@@ -97,11 +93,33 @@ public class Creature {
                 }
             }
         }
-        inputData[index] = health;
 
+        inputData[index++] =((double)health/(double)INITIAL_HEALTH);
+        closestFoodDistance = getClosestFoodDistance(world.getSize(),world);
+        inputData[index] = closestFoodDistance/WORLD_SIZE;
         return inputData;
-
     }
+
+    private double getClosestFoodDistance(int range, World world) {
+        prevFoodDistance = closestFoodDistance;
+        closestFoodDistance = Double.MAX_VALUE;
+
+        int searchRadius = range;
+
+        for (int x = Math.max(0, this.i - searchRadius); x < Math.min(world.getSize(), this.i + searchRadius + 1); x++) {
+            for (int y = Math.max(0, this.j - searchRadius); y < Math.min(world.getSize(), this.j + searchRadius + 1); y++) {
+                Tile tile = world.world[x][y];
+
+                if (tile.hasFood()) {
+                    double distance = Math.abs(this.i - x) + Math.abs(this.j - y);
+                    closestFoodDistance = Math.min(closestFoodDistance, distance);
+                }
+            }
+        }
+
+        return (closestFoodDistance == Double.MAX_VALUE) ? -1 : closestFoodDistance;
+    }
+
 
 //    private double[] getEnvironmentInput(World world){
 //        double foodDistance = world.getFoodDistance();
@@ -113,8 +131,13 @@ public class Creature {
 
     public double[] getRndInput() {
         Random random = new Random();
-        return new double[]{random.nextDouble(100), random.nextDouble(100), random.nextDouble(100)};
+        double[] input = new double[inputFeatures];
+        for (int i = 0; i < inputFeatures; i++) {
+            input[i] = random.nextDouble();
+        }
+        return input;
     }
+
     private boolean shouldEat() {
         return r.nextDouble() < Config.eatProbability;
     }
@@ -127,6 +150,7 @@ public class Creature {
         if(world.world[i][j].getFoodItems().size()>0){
             //process eating food immediately
             eventManager.publish(new EatingEvent(this, i,j, world),true);
+            hasEaten = true;
         }
     }
     private void checkBreedingAction(EventManager eventManager, World world) {
@@ -192,7 +216,7 @@ public class Creature {
 
 
     public boolean checkHealth(World world) {
-        health--;
+        health-=HEALTH_PENALTY;
         if (health < 0) {
             System.out.println("Creature " + id + " died.");
             world.remove(i,j,id);
@@ -204,4 +228,31 @@ public class Creature {
         health++;
     }
 
+    public void evaluateAction(World w) {
+
+        if (i == 0 || j == 0 || i == Config.WORLD_SIZE - 1 || j == Config.WORLD_SIZE - 1) {
+            this.fitness -= 15;
+        }
+
+
+        if (hasEaten) {
+            this.fitness += 10;
+        }
+        double currentDistance = getClosestFoodDistance(w.getSize(),w);
+        if (currentDistance < prevFoodDistance) {
+            fitness += 0.5;
+        } else if (currentDistance > prevFoodDistance) {
+            fitness -= 0.3;
+        }
+        hasEaten = false;
+    }
+
+    private double getPreviousFoodDistance() {
+        return prevFoodDistance;
+    }
+
+
+    public int getFitness() {
+        return fitness;
+    }
 }

@@ -27,9 +27,11 @@ public class Main extends Game {
 
         font.setUseIntegerPositions(false);
         font.getData().setScale(Gdx.graphics.getWidth() / Gdx.graphics.getHeight());
-
-
-        this.setScreen(new IntroScreen(this));
+        String[] text = new String[]{
+            "Welcome to the Evolution Simulation!",
+            "Tap anywhere to begin!"
+        };
+        this.setScreen(new IntroScreen(this,text,true));
     }
 
     @Override

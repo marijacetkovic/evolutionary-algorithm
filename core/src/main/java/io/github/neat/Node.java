@@ -1,10 +1,11 @@
 package io.github.neat;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Objects;
 
-public class Node {
-    int id;
+public class Node implements Serializable {
+    final int id;
     NodeType nodeType;
     double activationValue;
     ArrayList<Edge> prev;
@@ -25,9 +26,6 @@ public class Node {
         return id;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
 
     public NodeType getNodeType() {
         return nodeType;
@@ -61,7 +59,8 @@ public class Node {
         if (nodeType == NodeType.HIDDEN) {
             activationValue = relu(activationValue);
         } else if (nodeType == NodeType.OUTPUT) {
-            activationValue = sigmoid(activationValue);
+            //activationValue = sigmoid(activationValue);
+
         }
     }
 
@@ -72,6 +71,10 @@ public class Node {
     public double sigmoid(double x) {
         return 1.0 / (1.0 + Math.exp(-x));
     }
+    public double tanh(double x) {
+        return Math.tanh(x);
+    }
+
 
     public ArrayList<Edge> getPrev() {
         return prev;

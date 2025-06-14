@@ -1,23 +1,25 @@
 package io.github.neat;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Enumeration;
-import java.util.List;
+import java.io.Serializable;
+import java.util.*;
 
-import static io.github.neat.Config.numInputs;
+import static io.github.evolutionary_algorithm.GenomeSerializer.loadGenome;
+import static io.github.evolutionary_algorithm.GenomeSerializer.loadGenomeList;
+import static io.github.neat.Config.*;
+import static io.github.neat.GAOperations.mutate;
+import static io.github.neat.GAOperations.r;
 import static io.github.neat.NodeType.*;
 
 
-public class Genome {
+public class Genome implements Serializable {
     private ArrayList<Node> nodeGenes;
     private ArrayList<Edge> edgeGenes;
     private ArrayList<Node> inputNodes;
     private ArrayList<Node> hiddenNodes;
     private ArrayList<Node> outputNodes;
 
-    private double fitness;
     private Species species;
+    private double fitness=1;
 
 
     public Genome(ArrayList<Node> nodeGenes, ArrayList<Edge> edgeGenes) {
@@ -43,8 +45,83 @@ public class Genome {
         inputNodes = new ArrayList<>();
         hiddenNodes = new ArrayList<>();
         outputNodes = new ArrayList<>();
-        initFirstIndividual();
-        fitness = 1;
+    }
+
+    public static Genome createRandomGenome() {
+        Genome genome = new Genome();
+        genome.initFirstIndividual();
+        return genome;
+    }
+
+    public static Genome createFromSaved(Genome genome) {
+        genome.initSavedIndividual(genome);
+        return genome;
+    }
+    private void initSavedIndividual(Genome g) {
+        //ArrayList<Genome> genomes = loadGenomeList("best_genomes.ser");
+        //Genome g = genomes.get(r.nextInt(genomes.size()));
+        //if (Math.random()<0.5){
+           // mutate(g);
+        //}
+        this.nodeGenes = g.nodeGenes;
+        this.edgeGenes = g.edgeGenes;
+        topologicallySort();
+        categorizeNodes();
+        System.out.println(inputNodes.size()+" input nodes size");
+    }
+
+    public void topologicallySort() {
+        List<Node> sorted = new ArrayList<>();
+        Set<Node> visited = new HashSet<>();
+
+        for (Node node : nodeGenes) {
+            if (!visited.contains(node)) {
+                if (!visit(node, visited, new HashSet<>(), sorted)) {
+                    printGenotype(this);
+                    throw new RuntimeException("Cycle detected in network.");
+                }
+            }
+        }
+
+        Collections.reverse(sorted);
+        setNodeGenes((ArrayList<Node>) sorted);
+    }
+
+    private boolean visit(Node node, Set<Node> visited, Set<Node> stack, List<Node> sorted) {
+        if (stack.contains(node)) return false;
+        if (visited.contains(node)) return true;
+
+        stack.add(node);
+        for (Edge edge : getOutgoingEdges(node)) {
+            if (!visit(edge.getTargetNode(), visited, stack, sorted)) return false;
+        }
+        stack.remove(node);
+
+        visited.add(node);
+        sorted.add(node);
+        return true;
+    }
+
+
+    public void printGenotype(Genome genome) {
+        if (genome == null) {
+            System.out.println("Genome is null.");
+            return;
+        }
+
+        System.out.println("Genome ID: ");
+        System.out.println("Fitness: " + genome.getFitness());
+        System.out.println("Nodes:");
+
+        for (Node node : nodeGenes) {
+            System.out.println("  - Node ID: " + node.getId() + " | Type: " + node.getNodeType());
+        }
+
+        System.out.println("Connections:");
+        for (Edge conn : edgeGenes) {
+            System.out.println("  - " + conn.getSourceNode().getId() + " → " + conn.getTargetNode().getId()
+            );
+        }
     }
 
     public void initFirstIndividual() {
@@ -97,9 +174,8 @@ public class Genome {
     public boolean areConnected(Node a, Node b) {
         //should add adjacency list for this check
         for (Edge e:edgeGenes) {
-            if ((e.getSourceNode()==a && e.getTargetNode()==b)
-            //  uncommented for checking a->b direction only
-            //    || (e.getSourceNode()==b && e.getTargetNode()==a)
+            if ((e.getSourceNode().equals(a) && e.getTargetNode().equals(b))
+                || (e.getSourceNode().equals(b) && e.getTargetNode().equals(a))
             ){
                 return true;
             }
@@ -108,10 +184,8 @@ public class Genome {
         return false;
     }
 
-    public double getFitness(){
-        return fitness;
-    }
 
+    //according to IN number
     public ArrayList<Edge> getGenesSorted(){
         ArrayList<Edge> e = new ArrayList<>(edgeGenes);
         e.sort(Comparator.comparingInt(Edge::getInnovationNumber));
@@ -139,23 +213,27 @@ public class Genome {
     private void propagateLayer(NodeType layer){
         for (Node n: nodeGenes) {
             if (n.getNodeType() == layer){
+               // System.out.println(n.getId() + " " +n.getNodeType() );
+
                 n.calculateValue();
                 n.activate();
             }
         }
     }
     //choose max output
-    private int parseOutput(double[] output){
-        int idx = -1;
-        double max = Double.NEGATIVE_INFINITY;
+    private int parseOutput(double[] output) {
+        int bestIndex = 0;
+        double bestValue = -1;
+
         for (int i = 0; i < output.length; i++) {
-            if (output[i]>max){
-                max = output[i];
-                idx = i;
+            if (output[i] > bestValue) {
+                bestValue = output[i];
+                bestIndex = i;
             }
         }
-        return idx;
+        return bestIndex;
     }
+
 
     private void initInputNodes() {
         int numInputs = Config.numInputs;
@@ -197,15 +275,17 @@ public class Genome {
         }
     }
 
-    private double randomWeight() {
-        return Math.random() * 2 - 1;
+    public double randomWeight() {
+        Random r = new Random();
+        double stdv = Math.sqrt(1.0 / (numInputs + Config.numOutputs));
+        return r.nextGaussian() * stdv * 0.5;
     }
 
 
 
     private void setInputNodeValue(double[] input) {
 //        System.out.println("num inputs "+numInputs);
-//        System.out.println("input node size"+inputNodes.size());
+        //System.out.println("input node size"+inputNodes.size());
 //        for (Node n:inputNodes) {
 //            System.out.println(n.getId() + " " +n.getNodeType() );
 //        }
@@ -237,8 +317,12 @@ public class Genome {
         return outgoing;
     }
 
-    public void setFitness(double v) {
-        this.fitness = v;
+
+    public double getFitness() {
+        return fitness;
     }
 
+    public void setFitness(double v) {
+        fitness = v;
+    }
 }

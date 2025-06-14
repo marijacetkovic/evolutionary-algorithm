@@ -6,11 +6,17 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.utils.ScreenUtils;
 
+import static java.lang.System.exit;
+
 public class IntroScreen implements Screen {
     private final Main game;
+    private String[] text;
+    private boolean start;
 
-    public IntroScreen(Main game) {
+    public IntroScreen(Main game,String[] text, boolean start) {
         this.game = game;
+        this.text = text;
+        this.start = start;
     }
 
     @Override
@@ -24,8 +30,6 @@ public class IntroScreen implements Screen {
         game.viewport.apply();
         game.batch.setProjectionMatrix(game.camera.combined);
 
-        String title = "Welcome to the Evolution Simulation!";
-        String subtitle = "Tap anywhere to begin!";
 
         game.batch.begin();
 
@@ -35,7 +39,7 @@ public class IntroScreen implements Screen {
         float titleHeight = game.font.getRegion().getRegionHeight();
         float titleX = (Gdx.graphics.getWidth() - titleWidth) / 2;
         float titleY = Gdx.graphics.getHeight() / 2 + titleHeight / 2;
-        game.font.draw(game.batch, title, titleX, titleY);
+        game.font.draw(game.batch, text[0], titleX, titleY);
 
         game.font.setColor(Color.RED);
 
@@ -43,13 +47,17 @@ public class IntroScreen implements Screen {
         float subtitleHeight = game.font.getRegion().getRegionHeight();
         float subtitleX = (Gdx.graphics.getWidth() - subtitleWidth) / 2;
         float subtitleY = titleY - titleHeight+40;
-        game.font.draw(game.batch, subtitle, subtitleX, subtitleY);
+        game.font.draw(game.batch, text[1], subtitleX, subtitleY);
 
         game.batch.end();
 
         if (Gdx.input.isTouched()) {
-            game.setScreen(new SimulationScreen(game));
-            dispose();
+            if(start==true) {
+                game.setScreen(new SimulationScreen(game));
+            }
+            else{
+                Gdx.app.exit();
+            }
         }
     }
 
@@ -75,6 +83,5 @@ public class IntroScreen implements Screen {
 
     @Override
     public void dispose() {
-
     }
 }

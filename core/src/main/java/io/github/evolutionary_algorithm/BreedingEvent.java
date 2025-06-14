@@ -12,7 +12,7 @@ public class BreedingEvent extends Event{
         this.parentX = x;
         this.parentY = y;
         this.w = w;
-        System.out.println("New breeding event between" +x.getId()+ " and "+y.getId());
+        //System.out.println("New breeding event between" +x.getId()+ " and "+y.getId());
     }
 
 

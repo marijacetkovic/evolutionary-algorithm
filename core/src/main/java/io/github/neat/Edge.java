@@ -1,6 +1,9 @@
 package io.github.neat;
 
-public class Edge {
+import java.io.Serializable;
+import java.util.Objects;
+
+public class Edge implements Serializable {
     private Node sourceNode;
     private Node targetNode;
     private double weight;
@@ -65,5 +68,21 @@ public class Edge {
     public void toggleEnabled() {
         if(enabled) enabled = false;
         else enabled = true;
+    }
+    public void disable(){
+        enabled = false;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Edge edge = (Edge) obj;
+        return Objects.equals(innovationNumber, edge.innovationNumber);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(innovationNumber);
     }
 }

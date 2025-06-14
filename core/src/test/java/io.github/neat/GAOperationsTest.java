@@ -2,7 +2,9 @@ package io.github.neat;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.List;
 
+import static io.github.neat.NodeType.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class GAOperationsTest {
@@ -10,8 +12,8 @@ public class GAOperationsTest {
     @Test
     public void testAddEdgeMutation() {
         Genome genome = new Genome();
-        Node node1 = new Node(1, NodeType.INPUT, 0.0);
-        Node node2 = new Node(2, NodeType.HIDDEN, 0.0);
+        Node node1 = new Node(1, INPUT, 0.0);
+        Node node2 = new Node(2, HIDDEN, 0.0);
         genome.addNode(node1);
         genome.addNode(node2);
 
@@ -26,8 +28,8 @@ public class GAOperationsTest {
     @Test
     public void testAddNodeMutation() {
         Genome genome = new Genome();
-        Node node1 = new Node(1, NodeType.INPUT, 0.0);
-        Node node2 = new Node(2, NodeType.HIDDEN, 0.0);
+        Node node1 = new Node(1, INPUT, 0.0);
+        Node node2 = new Node(2, HIDDEN, 0.0);
         genome.addNode(node1);
         genome.addNode(node2);
 
@@ -52,8 +54,8 @@ public class GAOperationsTest {
     @Test
     public void testInnovationIdAssignment() {
         Genome genome = new Genome();
-        Node node1 = new Node(1, NodeType.INPUT, 0.0);
-        Node node2 = new Node(2, NodeType.HIDDEN, 0.0);
+        Node node1 = new Node(1, INPUT, 0.0);
+        Node node2 = new Node(2, HIDDEN, 0.0);
         genome.addNode(node1);
         genome.addNode(node2);
 
@@ -69,12 +71,13 @@ public class GAOperationsTest {
     }
 
 
+
     @Test
     public void testCrossoverWithInnovationNumbers() {
-        Node node1 = new Node(1, NodeType.INPUT, 0.0);
-        Node node2 = new Node(2, NodeType.HIDDEN, 0.0);
-        Node node3 = new Node(3, NodeType.OUTPUT, 0.0);
-        Node node4 = new Node(4, NodeType.HIDDEN, 0.0);
+        Node node1 = new Node(1, INPUT, 0.0);
+        Node node2 = new Node(2, HIDDEN, 0.0);
+        Node node3 = new Node(3, OUTPUT, 0.0);
+        Node node4 = new Node(4, HIDDEN, 0.0);
 
         int IN1 = INManager.getInstance().getInnovationID(node1, node2);
         int IN2 = INManager.getInstance().getInnovationID(node2, node3);
@@ -136,5 +139,6 @@ public class GAOperationsTest {
         for (Edge edge : childEdges) {
             assertTrue(edge.getInnovationNumber() >= 0, "Innovation number should be greater than 0");
         }
+
     }
 }

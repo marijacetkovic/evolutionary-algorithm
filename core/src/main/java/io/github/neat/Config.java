@@ -1,9 +1,12 @@
 package io.github.neat;
 
-import static io.github.evolutionary_algorithm.Config.inputFeatures;
-
 public class Config {
-    public static int numInputs = 19;
-    public static int numOutputs = 5;
+    public static boolean start = false;
+    public static boolean structuralMutation = false;
+    public static boolean test = false;
+
+    public static int numInputs = 18;
+    public static int numOutputs = 4;
     public static int startNodeId = numInputs + numOutputs;
+    public static final int TOURNAMENT_SIZE = 3;
 }
