@@ -4,23 +4,36 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Objects;
 
+import static io.github.neat.GAOperations.r;
+
 public class Node implements Serializable {
     final int id;
     NodeType nodeType;
+    double bias;
+    double rawValue;
     double activationValue;
-    ArrayList<Edge> prev;
-    public Node(int id, NodeType nodeType, double activationValue) {
+    ArrayList<Edge> incomingEdges; //inputs
+    public Node(int id, NodeType nodeType) {
         this.id = id;
         this.nodeType = nodeType;
-        this.activationValue = activationValue;
-        prev = new ArrayList<>();
+        this.rawValue = 0.0;
+        this.activationValue = 0.0;
+        incomingEdges = new ArrayList<>();
+        if (nodeType == NodeType.HIDDEN || nodeType == NodeType.OUTPUT) {
+            //rnd bias [-1,1]
+            this.bias = (r.nextDouble() * 2) - 1;
+        } else {
+            this.bias = 0.0;
+        }
     }
 
     public Node(Node original) {
         this.id = original.id;
         this.nodeType = original.nodeType;
-        this.activationValue = original.activationValue;
-        this.prev = new ArrayList<>();
+        this.bias = original.bias;
+        this.rawValue = 0.0;
+        this.activationValue = 0.0;
+        this.incomingEdges = new ArrayList<>();
     }
     public int getId() {
         return id;
@@ -43,24 +56,29 @@ public class Node implements Serializable {
         this.activationValue = activationValue;
     }
 
-    public void addPrevEdge(Edge e){
-        prev.add(e);
+    public void addIncomingEdge(Edge e){
+        incomingEdges.add(e);
     }
 
-    public void calculateValue(){
-        //reset previously accumulated val
-        activationValue = 0;
-        for (Edge e:prev) {
-            if(e.isEnabled()) activationValue+=e.getSourceNode().getActivationValue()*e.getWeight();
+    public void calculateValue() {
+        // input nodes pass their set val
+        if (nodeType == NodeType.INPUT) {
+            this.rawValue = this.activationValue;
+            return;
         }
-    }
+        rawValue = 0.0;
 
-    public void activate(){
+        for (Edge e : incomingEdges) {
+            if (e.isEnabled()) {
+                rawValue += e.getSourceNode().getActivationValue() * e.getWeight();
+            }
+        }
+        rawValue += bias;
+
         if (nodeType == NodeType.HIDDEN) {
-            activationValue = relu(activationValue);
+            activationValue = relu(rawValue);
         } else if (nodeType == NodeType.OUTPUT) {
-            //activationValue = sigmoid(activationValue);
-
+            activationValue = sigmoid(rawValue);
         }
     }
 
@@ -76,8 +94,8 @@ public class Node implements Serializable {
     }
 
 
-    public ArrayList<Edge> getPrev() {
-        return prev;
+    public ArrayList<Edge> getIncomingEdges() {
+        return incomingEdges;
     }
 
     @Override
@@ -94,4 +112,10 @@ public class Node implements Serializable {
     }
 
 
+    public double getBias() {
+        return this.bias;
+    }
+    public void setBias(double bias){
+        this.bias = bias;
+    }
 }

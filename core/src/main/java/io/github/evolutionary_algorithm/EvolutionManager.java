@@ -16,19 +16,15 @@ public class EvolutionManager {
     private static EvolutionManager instance;
     private World world;
     private int currentGeneration;
-    private final int maxGenerations;
-    private final int evolutionaryGenerations;
 
     private Random r;
     private ArrayList<Genome> eliteGenomes;
 
     private EvolutionManager() {
         this.currentGeneration = 0;
-        this.maxGenerations = MAX_GEN;
         this.world = new World(WORLD_SIZE);
         initFirstGeneration();
         this.eliteGenomes = new ArrayList<>();
-        evolutionaryGenerations = 10;
     }
 
     public static EvolutionManager getInstance() {
@@ -42,8 +38,10 @@ public class EvolutionManager {
         if (currentPhase == EVOLUTIONARY) {
             return runEvolutionaryPhase();
         }
-        //else auto
-        return false;
+        else{
+            return runAutoPhase();
+        }
+
     }
 
     private boolean runEvolutionaryPhase() {
@@ -51,24 +49,35 @@ public class EvolutionManager {
 
         eliteGenomes.clear();
         eliteGenomes.addAll(world.getBestIndividuals((int) (ELITE*NUM_CREATURES)));
-
+        ArrayList<Genome> parents = world.getParentsGenome();
         ArrayList<Genome> nextGeneration = new ArrayList<>();
 
         //add unchanged
         nextGeneration.addAll(eliteGenomes);
 
         while (nextGeneration.size() < NUM_CREATURES) {
-            Genome parent1 = tournamentSelect(eliteGenomes);
-            Genome parent2 = tournamentSelect(eliteGenomes);
+            Genome parent1 = tournamentSelect(parents);
+            Genome parent2 = tournamentSelect(parents);
             Genome offspring = GAOperations.createOffspring(parent1, parent2);
+            //offspring.analyzeWeights();
             nextGeneration.add(offspring);
         }
         world.reset();
         world.spawnCreatures(nextGeneration);
+        System.out.println("NExt gen"+nextGeneration.size());
         currentGeneration++;
 
-        if (currentGeneration >= evolutionaryGenerations) {
+        if (currentGeneration >= EVOLUTION_GEN) {
             transitionToAuto();
+        }
+
+        return false;
+    }
+
+    private boolean runAutoPhase(){
+        currentGeneration+=1;
+        if (currentGeneration>MAX_GEN){
+            return true;
         }
         return false;
     }

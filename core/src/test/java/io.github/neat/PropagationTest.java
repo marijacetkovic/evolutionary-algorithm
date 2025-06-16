@@ -13,10 +13,10 @@ class PropagationTest {
     public void testPropagationSmall() {
         Genome genome = new Genome();
 
-        Node node1 = new Node(1, INPUT, 1.0);
-        Node node2 = new Node(2, INPUT, 2.0);
-        Node node3 = new Node(3, OUTPUT, 0.0);
-        Node node4 = new Node(4, HIDDEN, 0.0);
+        Node node1 = new Node(1, INPUT);
+        Node node2 = new Node(2, INPUT);
+        Node node3 = new Node(3, OUTPUT);
+        Node node4 = new Node(4, HIDDEN);
 
         genome.addNode(node1);
         genome.addNode(node2);
@@ -30,10 +30,7 @@ class PropagationTest {
         genome.addEdge(edge1);
         genome.addEdge(edge2);
         genome.addEdge(edge3);
-        Individual i = new Individual(0, genome);
 
-        double[] input = {1,2,3};
-        i.makeDecision(input);
 
         double expectedHiddenNodeValue = 0.5 - 1.4;
         assertEquals(expectedHiddenNodeValue, node4.getActivationValue(), 0.001);
@@ -46,13 +43,13 @@ class PropagationTest {
     public void testPropagationMedium() {
         Genome genome = new Genome();
 
-        Node node1 = new Node(1, INPUT, 1.0);
-        Node node2 = new Node(2, INPUT, 2.0);
-        Node node3 = new Node(3, OUTPUT, 0.0);
-        Node node4 = new Node(4, OUTPUT, 0.0);
-        Node node5 = new Node(5, HIDDEN, 0.0);
-        Node node6 = new Node(6, HIDDEN, 0.0);
-        Node node7 = new Node(7, HIDDEN, 0.0);
+        Node node1 = new Node(1, INPUT);
+        Node node2 = new Node(2, INPUT);
+        Node node3 = new Node(3, OUTPUT);
+        Node node4 = new Node(4, OUTPUT);
+        Node node5 = new Node(5, HIDDEN);
+        Node node6 = new Node(6, HIDDEN);
+        Node node7 = new Node(7, HIDDEN);
 
         genome.addNode(node1);
         genome.addNode(node2);
@@ -90,9 +87,6 @@ class PropagationTest {
         genome.addEdge(edge11);
         genome.addEdge(edge12);
 
-        Individual i = new Individual(0, genome);
-        double[] input = {1,2,3};
-        i.makeDecision(input);
 
         double expectedHiddenNodeValue1 = (1.0 * 0.5) + (2.0 * -0.7);
         double expectedHiddenNodeValue2 = (1.0 * 0.3) + (2.0 * -0.8);

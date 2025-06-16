@@ -12,8 +12,8 @@ public class GAOperationsTest {
     @Test
     public void testAddEdgeMutation() {
         Genome genome = new Genome();
-        Node node1 = new Node(1, INPUT, 0.0);
-        Node node2 = new Node(2, HIDDEN, 0.0);
+        Node node1 = new Node(1, INPUT);
+        Node node2 = new Node(2, HIDDEN);
         genome.addNode(node1);
         genome.addNode(node2);
 
@@ -28,8 +28,8 @@ public class GAOperationsTest {
     @Test
     public void testAddNodeMutation() {
         Genome genome = new Genome();
-        Node node1 = new Node(1, INPUT, 0.0);
-        Node node2 = new Node(2, HIDDEN, 0.0);
+        Node node1 = new Node(1, INPUT);
+        Node node2 = new Node(2, HIDDEN);
         genome.addNode(node1);
         genome.addNode(node2);
 
@@ -54,8 +54,8 @@ public class GAOperationsTest {
     @Test
     public void testInnovationIdAssignment() {
         Genome genome = new Genome();
-        Node node1 = new Node(1, INPUT, 0.0);
-        Node node2 = new Node(2, HIDDEN, 0.0);
+        Node node1 = new Node(1, INPUT);
+        Node node2 = new Node(2, HIDDEN);
         genome.addNode(node1);
         genome.addNode(node2);
 
@@ -74,10 +74,10 @@ public class GAOperationsTest {
 
     @Test
     public void testCrossoverWithInnovationNumbers() {
-        Node node1 = new Node(1, INPUT, 0.0);
-        Node node2 = new Node(2, HIDDEN, 0.0);
-        Node node3 = new Node(3, OUTPUT, 0.0);
-        Node node4 = new Node(4, HIDDEN, 0.0);
+        Node node1 = new Node(1, INPUT);
+        Node node2 = new Node(2, HIDDEN);
+        Node node3 = new Node(3, OUTPUT);
+        Node node4 = new Node(4, HIDDEN);
 
         int IN1 = INManager.getInstance().getInnovationID(node1, node2);
         int IN2 = INManager.getInstance().getInnovationID(node2, node3);

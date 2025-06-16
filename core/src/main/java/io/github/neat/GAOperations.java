@@ -2,12 +2,13 @@ package io.github.neat;
 
 import java.util.*;
 
-import static io.github.neat.Config.TOURNAMENT_SIZE;
-import static io.github.neat.Config.structuralMutation;
+import static io.github.evolutionary_algorithm.Config.ADD_EDGE_MUTATION_PROB;
+import static io.github.evolutionary_algorithm.Config.ADD_NODE_MUTATION_PROB;
+import static io.github.neat.Config.*;
 import static io.github.neat.NodeType.HIDDEN;
 
 public class GAOperations {
-    static Random r = new Random(4);
+    static Random r = new Random();
 
     public static Genome createOffspring(Genome p1, Genome p2){
         Genome child = crossover(p1,p2);
@@ -19,19 +20,14 @@ public class GAOperations {
 
     //change the probabilities here
     public static void mutate(Genome g){
-        if (!structuralMutation){
-            if(r.nextDouble()<0.7) {
-                perturbWeights(g);
-            }
+        //always do weight mutations
+        if (r.nextDouble() < Config.WEIGHT_MUTATION_RATE) {
+            mutateWeights(g);
         }
-        else {
-            if (r.nextDouble() < 0.9) {
-                addEdgeMutation(g);
-            } else {
-                addNodeMutation(g);
-            }
+
+        if (r.nextDouble() < Config.STRUCTURAL_MUTATION_RATE) {
+            mutateStructure(g);
         }
-        g.topologicallySort();
     }
     public static void addEdgeMutation(Genome g){
         ArrayList<Node> nodes = g.getNodeGenes();
@@ -49,7 +45,7 @@ public class GAOperations {
         //disallow self loops, alr existing and cycle forming edges
         } while (a.equals(b) || g.areConnected(a, b) || formsCycle(g,a,b));
 
-        double weight = r.nextDouble(-1.0,1.001);
+        double weight = g.randomWeight();
         int IN = INManager.getInstance().getInnovationID(a,b);
         Edge e = new Edge(a,b,weight,IN);
         g.addEdge(e);
@@ -74,20 +70,71 @@ public class GAOperations {
         return false;
     }
 
-  /*  public static void weightMutation(Genome g){
+        /*  public static void weightMutation(Genome g){
         ArrayList<Edge> edges = g.getEdgeGenes();
         Edge e = edges.get(r.nextInt(edges.size()));
         e.setWeight(g.randomWeight());
     }*/
-      public static void perturbWeights(Genome g) {
-          for (Edge e : g.getEdgeGenes()) {
-              if (r.nextDouble() < 0.8) {
-                  e.setWeight(e.getWeight() + r.nextGaussian() * 0.1);
-              }
-          }
-      }
 
+    private static boolean structuralMutationEnabled(Genome g) {
+        //add control wrt size of genome
+        return true;
+    }
+    private static void mutateStructure(Genome g) {
+        double prob = r.nextDouble();
 
+        if (prob < ADD_EDGE_MUTATION_PROB) {
+            addEdgeMutation(g);
+        }
+        if (prob < ADD_NODE_MUTATION_PROB) {
+            addNodeMutation(g);
+        }
+        else {
+            toggleConnection(g);
+        }
+    }
+    private static void toggleConnection(Genome g) {
+        if (g.getEdgeGenes().isEmpty()) return;
+
+        Edge edge = g.getEdgeGenes().get(r.nextInt(g.getEdgeGenes().size()));
+        edge.setEnabled(!edge.isEnabled());
+    }
+    public static void mutateWeights(Genome g) {
+        for (Edge e : g.getEdgeGenes()) {
+            if (r.nextDouble() < 0.8) {
+                //small mutation
+                if (r.nextDouble() < 0.9) {
+                    e.setWeight(e.getWeight() + r.nextGaussian() * 0.1);
+                } else {
+                    //random
+                    e.setWeight(g.randomWeight());
+                }
+                // clamp to -3,3
+                e.setWeight(Math.max(-3.0, Math.min(3.0, e.getWeight())));
+            }
+        }
+    }
+
+    public static void mutateBias(Genome g) {
+        for (Node n : g.getNodeGenes()) {
+            if (n.getNodeType() == NodeType.INPUT) {
+                continue;
+            }
+            if (r.nextDouble() < NODE_BIAS_MUTATION_RATE) {
+                double newBias;
+                //small mutation
+                if (r.nextDouble() < GAUSSIAN_BIAS_MUTATION_PROB) {
+                    newBias = n.getBias() + r.nextGaussian() * BIAS_MUTATION_STRENGTH;
+                } else {
+                    //rnd restart
+                    newBias = g.randomWeight();
+                }
+                //clamp
+                newBias = Math.max(MIN_BIAS, Math.min(MAX_BIAS, newBias));
+                n.setBias(newBias);
+            }
+        }
+    }
     public static void addNodeMutation(Genome g){
         ArrayList<Edge> edges = g.getEdgeGenes();
         ArrayList<Node> nodes = g.getNodeGenes();
@@ -99,7 +146,7 @@ public class GAOperations {
         e.disable();
         System.out.println("Split edge "+e.getInnovationNumber());
         int id = INManager.getInstance().getNodeID(e.getInnovationNumber());
-        Node n = new Node(id, HIDDEN,0.0);
+        Node n = new Node(id, HIDDEN);
         Node src = e.getSourceNode();
         Node target = e.getTargetNode();
         int IN1 = INManager.getInstance().getInnovationID(src,n);
@@ -108,7 +155,7 @@ public class GAOperations {
         Edge e2 = new Edge(n, target, e.getWeight(), IN2);
         g.addEdge(e1);
         g.addEdge(e2);
-        nodes.add(n);
+        g.addNode(n);
         System.out.println("Mutated node");
 
     }
@@ -231,12 +278,12 @@ public class GAOperations {
         return child;
     }
 
-    public static Genome tournamentSelect(List<Genome> bestGenomes) {
+    public static Genome tournamentSelect(List<Genome> parents) {
         Genome best = null;
         double bestFitness = Double.NEGATIVE_INFINITY;
 
         for (int i = 0; i < TOURNAMENT_SIZE; i++) {
-            Genome candidate = bestGenomes.get(r.nextInt(bestGenomes.size()));
+            Genome candidate = parents.get(r.nextInt(parents.size()));
             if (candidate.getFitness() > bestFitness) {
                 best = candidate;
                 bestFitness = candidate.getFitness();

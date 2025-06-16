@@ -3,10 +3,9 @@ package io.github.neat;
 import java.io.Serializable;
 import java.util.*;
 
-import static io.github.evolutionary_algorithm.GenomeSerializer.loadGenome;
-import static io.github.evolutionary_algorithm.GenomeSerializer.loadGenomeList;
+import static io.github.evolutionary_algorithm.Config.MAX_INITIAL_WEIGHT;
+import static io.github.evolutionary_algorithm.Config.MIN_INITIAL_WEIGHT;
 import static io.github.neat.Config.*;
-import static io.github.neat.GAOperations.mutate;
 import static io.github.neat.GAOperations.r;
 import static io.github.neat.NodeType.*;
 
@@ -20,23 +19,18 @@ public class Genome implements Serializable {
 
     private Species species;
     private double fitness=1;
+    //no need to serialize
+    private transient ArrayList<Node> topologicallySortedNodes;
+
 
 
     public Genome(ArrayList<Node> nodeGenes, ArrayList<Edge> edgeGenes) {
-        this.nodeGenes = nodeGenes;
-        this.edgeGenes = edgeGenes;
+        this.nodeGenes = new ArrayList<>(nodeGenes);
+        this.edgeGenes = new ArrayList<>(edgeGenes);
         inputNodes = new ArrayList<>();
         hiddenNodes = new ArrayList<>();
         outputNodes = new ArrayList<>();
         categorizeNodes();
-    }
-
-    private void categorizeNodes() {
-        for (Node n:nodeGenes) {
-            if (n.nodeType == INPUT) inputNodes.add(n);
-            else if (n.nodeType == HIDDEN) hiddenNodes.add(n);
-            else outputNodes.add(n);
-        }
     }
 
     public Genome() {
@@ -45,6 +39,17 @@ public class Genome implements Serializable {
         inputNodes = new ArrayList<>();
         hiddenNodes = new ArrayList<>();
         outputNodes = new ArrayList<>();
+    }
+
+    void categorizeNodes() {
+        inputNodes.clear();
+        hiddenNodes.clear();
+        outputNodes.clear();
+        for (Node n:nodeGenes) {
+            if (n.nodeType == INPUT) inputNodes.add(n);
+            else if (n.nodeType == HIDDEN) hiddenNodes.add(n);
+            else outputNodes.add(n);
+        }
     }
 
     public static Genome createRandomGenome() {
@@ -70,7 +75,7 @@ public class Genome implements Serializable {
         System.out.println(inputNodes.size()+" input nodes size");
     }
 
-    public void topologicallySort() {
+    public ArrayList<Node> topologicallySort() {
         List<Node> sorted = new ArrayList<>();
         Set<Node> visited = new HashSet<>();
 
@@ -84,7 +89,7 @@ public class Genome implements Serializable {
         }
 
         Collections.reverse(sorted);
-        setNodeGenes((ArrayList<Node>) sorted);
+        return (ArrayList<Node>) sorted;
     }
 
     private boolean visit(Node node, Set<Node> visited, Set<Node> stack, List<Node> sorted) {
@@ -130,16 +135,19 @@ public class Genome implements Serializable {
         initConnections();
     }
 
+    //prevent returning genes directly
+
     public ArrayList<Node> getNodeGenes() {
         return nodeGenes;
     }
 
-    public void setNodeGenes(ArrayList<Node> nodeGenes) {
-        this.nodeGenes = nodeGenes;
-    }
-
     public ArrayList<Edge> getEdgeGenes() {
         return edgeGenes;
+    }
+
+    public void setNodeGenes(ArrayList<Node> nodeGenes) {
+        this.nodeGenes = nodeGenes;
+        categorizeNodes();
     }
 
     public void setEdgeGenes(ArrayList<Edge> edgeGenes) {
@@ -148,13 +156,23 @@ public class Genome implements Serializable {
 
     public void addNode(Node n){
         this.nodeGenes.add(n);
+        categorizeNodes();
     }
     public void addEdge(Edge e){
         this.edgeGenes.add(e);
         //this is bad
-        e.getTargetNode().addPrevEdge(e);
+        e.getTargetNode().addIncomingEdge(e);
     }
-
+    public void analyzeWeights() {
+        double avg = 0, min = 0, max = 0;
+        for(Edge e : edgeGenes) {
+            avg += e.getWeight();
+            min = Math.min(min, e.getWeight());
+            max = Math.max(max, e.getWeight());
+        }
+        avg /= edgeGenes.size();
+        System.out.printf("Weights: Avg=%.2f Min=%.2f Max=%.2f\n", avg, min, max);
+    }
     public void displayGenotype(){
         System.out.println("nodes:");
         for (Node node : getNodeGenes()) {
@@ -175,8 +193,7 @@ public class Genome implements Serializable {
         //should add adjacency list for this check
         for (Edge e:edgeGenes) {
             if ((e.getSourceNode().equals(a) && e.getTargetNode().equals(b))
-                || (e.getSourceNode().equals(b) && e.getTargetNode().equals(a))
-            ){
+                || (e.getSourceNode().equals(b) && e.getTargetNode().equals(a))){
                 return true;
             }
         }
@@ -200,26 +217,25 @@ public class Genome implements Serializable {
     }
 
     public int calcPropagation(double[] input) {
-        if (input.length< numInputs){
-            throw new RuntimeException("Required input size is "+ numInputs);
+        if (input.length < Config.numInputs) {
+            throw new RuntimeException("Required input size is " + Config.numInputs);
         }
+        //reset old vals!!
+        for (Node n : nodeGenes) {
+            n.setActivationValue(0.0);
+        }
+
         setInputNodeValue(input);
-        propagateLayer(HIDDEN);
-        propagateLayer(OUTPUT);
+
+        for (Node n : topologicallySortedNodes) {
+            if (n.getNodeType() != NodeType.INPUT) {
+                n.calculateValue();
+            }
+        }
+
         return parseOutput(getOutput());
     }
 
-
-    private void propagateLayer(NodeType layer){
-        for (Node n: nodeGenes) {
-            if (n.getNodeType() == layer){
-               // System.out.println(n.getId() + " " +n.getNodeType() );
-
-                n.calculateValue();
-                n.activate();
-            }
-        }
-    }
     //choose max output
     private int parseOutput(double[] output) {
         int bestIndex = 0;
@@ -240,7 +256,7 @@ public class Genome implements Serializable {
 
         for (int i = 0; i < numInputs; i++) {
             int nodeID = i;
-            Node n = new Node(nodeID, NodeType.INPUT, 0);
+            Node n = new Node(nodeID, NodeType.INPUT);
             inputNodes.add(n);
             nodeGenes.add(n);
         }
@@ -254,7 +270,7 @@ public class Genome implements Serializable {
 
         for (int i = 0; i < numOutputs; i++) {
             int nodeID = startID + i;
-            Node n = new Node(nodeID, OUTPUT, 0);
+            Node n = new Node(nodeID, OUTPUT);
             outputNodes.add(n);
             nodeGenes.add(n);
         }
@@ -270,17 +286,17 @@ public class Genome implements Serializable {
                 double weight = randomWeight();
 
                 Edge edge = new Edge(input, output, weight, innovationID);
+                //System.out.println("Initial Edge: " + input.getId() + " -> " + output.getId() + " Weight: " + weight);
+
                 addEdge(edge);
             }
         }
     }
 
     public double randomWeight() {
-        Random r = new Random();
-        double stdv = Math.sqrt(1.0 / (numInputs + Config.numOutputs));
-        return r.nextGaussian() * stdv * 0.5;
+        double range = MAX_INITIAL_WEIGHT - MIN_INITIAL_WEIGHT;
+        return MIN_INITIAL_WEIGHT + (r.nextDouble() * range);
     }
-
 
 
     private void setInputNodeValue(double[] input) {
@@ -295,9 +311,7 @@ public class Genome implements Serializable {
             inputNodes.get(i).setActivationValue(input[i]);
         }
     }
-    private void propagate(){
 
-    }
     private double[] getOutput(){
         double[] output = new double[outputNodes.size()];
         for (int i = 0; i < outputNodes.size(); i++) {

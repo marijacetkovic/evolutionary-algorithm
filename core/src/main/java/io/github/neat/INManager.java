@@ -21,12 +21,12 @@ public class INManager implements Serializable {
 
     public static INManager getInstance() {
         if (instance == null) {
-            try {
-                loadFromFile("inmanager_state.ser");
-                System.out.println("IMLOADED FROM FILEEE");
-            } catch (Exception e) {
-                instance = new INManager();
-            }
+            //try {
+              //  loadFromFile("inmanager_state.ser");
+               // System.out.println("IMLOADED FROM FILEEE");
+            //} catch (Exception e) {
+            instance = new INManager();
+            //}
         }
         return instance;
     }
@@ -79,10 +79,7 @@ public class INManager implements Serializable {
             throw new RuntimeException(e);
         }
     }
-    /**
-     * Prints all edges and their innovation numbers for debugging.
-     * Format: "Edge: X-Y → Innovation: Z"
-     */
+
     public static void printEdgeInnovations() {
         if (instance == null) {
             System.out.println("INManager not initialized - no edges to display.");
@@ -105,10 +102,7 @@ public class INManager implements Serializable {
 
         System.out.println("==================================\n");
     }
-    /**
-     * Prints all node IDs created from edge splits for debugging.
-     * Format: "Split Edge: X → Assigned Node ID: Y"
-     */
+
     public static void printNodeInnovations() {
         if (instance == null) {
             System.out.println("INManager not initialized - no nodes to display.");

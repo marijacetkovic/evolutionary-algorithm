@@ -80,11 +80,12 @@ public class World {
     public Creature spawnCreature(Genome g) {
         int i, j;
         if (lastId == Config.MAX_CREATURES) return null;
-        do {
-            i = r.nextInt(size/2);
-            j = r.nextInt(size/2);
-        } while (!world[i][j].getCreatures().isEmpty());
-
+        //do {
+        //    i = r.nextInt(size);
+        //    j = r.nextInt(size);
+        //} while (!world[i][j].getCreatures().isEmpty());
+        i=size/2;
+        j=size/2;
         Creature c = new Creature(lastId, i, j, getRandomFoodCode(), g);
         world[i][j].addCreature(lastId);
         population.add(c);
@@ -188,6 +189,7 @@ public class World {
             if (c.checkHealth(this)) toRemove.add(c);
         }
         population.removeAll(toRemove);
+        //keep track of prev pop
         prevPopulation.addAll(toRemove);
         if (population.isEmpty()) System.out.println("Whole generation died.");
     }
@@ -258,8 +260,8 @@ public class World {
     public void cutFood(int i, int j){
         for (Food f:food) if (f.getI()==i && f.getJ()==j) {
             boolean flag = food.remove(f);
-            System.out.println("Removed"+flag);
-            System.out.println("after removing"+food.size());
+            //System.out.println("Removed"+flag);
+            //System.out.println("after removing"+food.size());
             return;}
     }
 
@@ -307,39 +309,17 @@ public class World {
     public int increaseGeneration() {
         return ++this.generation;
     }
-//    private int[] checkAdjacentTile(Creature c){
-//        int i = c.getI();
-//        int j = c.getJ();
-//        Collections.shuffle(directions, r);
-//        for (int[] dir : directions) {
-//            int newRow = i + dir[0];
-//            int newCol = j + dir[1];
-//            if (isWithinBounds(newRow, newCol)) {
-//                moveCreature(c,newRow,newCol);
-//                return new int[]{newRow,newCol};
-//            }
-//        }
-//        return null;
-//    }
-//    public boolean isWithinBounds(int row, int col) {
-//        return row >= 0 && row < size && col >= 0 && col < size;
-//    }
-//    public double getFoodDistance() {
-//    }
 
-//    public double getCreatureDistance() {
-//    }
-//
-//    private double getNearest(int id, int i, int j){
-//
-//    }
-//
-//    private double bfs(int id, int i, int j, Queue<int[]> visited){
-//        int distance = 0;
-//
-//    }
+    public ArrayList<Genome> getParentsGenome() {
+        ArrayList<Genome> parents = new ArrayList<>();
+        for (Creature c: prevPopulation) {
+            parents.add(c.getGenome());
+        }
+        return parents;
+    }
 
-//    public boolean isAvailableTile(int row, int col) {
-//        return row >= 0 && row < world.length && col >= 0 && col < world[0].length && world[row][col].isEmpty();
-//
+    public boolean isWall(int x, int y) {
+        return x == 0 || x == world.length - 1 || y == 0 || y == world.length - 1;
+    }
+
 }
