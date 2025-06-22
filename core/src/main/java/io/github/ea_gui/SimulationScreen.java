@@ -8,10 +8,7 @@ public class SimulationScreen implements Screen {
     private final Main game;
     private World world;
     private WorldRenderer worldRenderer;
-    String[] text = new String[]{
-        "Simulation finished.",
-        "Tap anywhere to close!"
-    };
+    String[] text;
     private float accumulator;
     private static final float FIXED_TIMESTEP = 1 / 30f;
     private EvolutionManager evolutionManager;
@@ -25,6 +22,10 @@ public class SimulationScreen implements Screen {
         evolutionManager = EvolutionManager.getInstance();
         world = evolutionManager.getWorld();
         worldRenderer = new WorldRenderer(world,game,evolutionManager);
+        text = new String[]{
+            "Simulation finished.",
+            "Tap anywhere to close!"
+        };
     }
     float time;
     @Override
