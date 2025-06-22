@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Objects;
 
+import static io.github.neat.GAOperations.getInitialRandomWeight;
 import static io.github.neat.GAOperations.r;
 
 public class Node implements Serializable {
@@ -21,7 +22,7 @@ public class Node implements Serializable {
         incomingEdges = new ArrayList<>();
         if (nodeType == NodeType.HIDDEN || nodeType == NodeType.OUTPUT) {
             //rnd bias [-1,1]
-            this.bias = (r.nextDouble() * 2) - 1;
+            this.bias = getInitialRandomWeight();
         } else {
             this.bias = 0.0;
         }
@@ -76,7 +77,7 @@ public class Node implements Serializable {
         rawValue += bias;
 
         if (nodeType == NodeType.HIDDEN) {
-            activationValue = relu(rawValue);
+            activationValue = leakyRelu(rawValue);
         } else if (nodeType == NodeType.OUTPUT) {
             activationValue = sigmoid(rawValue);
         }
@@ -85,6 +86,7 @@ public class Node implements Serializable {
     public double relu(double x) {
         return Math.max(0, x);
     }
+    private double leakyRelu(double x) {return Math.max(x, x * Config.LEAKY_RELU_ALPHA);}
 
     public double sigmoid(double x) {
         return 1.0 / (1.0 + Math.exp(-x));

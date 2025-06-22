@@ -28,7 +28,7 @@ public class Creature {
     String[] actions = { "up", "left", "down", "right", "none", "eat"};
     int[][] actionOffset = { {-1,0}, {0,-1}, {1,0}, {0,1}, {0,0}};
     private boolean hasEaten;
-    private int fitness;
+    private double fitness;
     private double closestFoodDistance;
     private double prevFoodDistance;
     private int wallPenaltyCnt;
@@ -46,7 +46,7 @@ public class Creature {
         this.fitness = 0;
         wallPenaltyCnt = 0;
         timeSinceEaten = 0;
-        System.out.println("Spawned a creature at positions " +i+","+j);
+        //System.out.println("Spawned a creature at positions " +i+","+j);
     }
 
 
@@ -65,7 +65,7 @@ public class Creature {
         double[] input = this.getEnvironmentInput(world);
         //double[] input = getRndInput();
         int decision = genome.calcPropagation(input);
-        System.out.println("Individuals decision to move: "+actions[decision]);
+        //System.out.println("Individuals decision to move: "+actions[decision]);
 
         performInWorld(eventManager,world,decision);
     }
@@ -80,7 +80,7 @@ public class Creature {
 
             world.moveCreature(this,i,j);
         }
-        //add one more output node for this
+        //add one more output node for this next
         if (currentPhase==AUTO && fitness>breedingThreshold){
             checkBreedingAction(eventManager, world);
         }
@@ -88,7 +88,7 @@ public class Creature {
     }
 
     private double[] getEnvironmentInput(World world) {
-        double[] inputs = new double[numInputs]; // Fixed size for performance
+        double[] inputs = new double[numInputs];
         int idx = 0;
         inputs[idx++] = world.world[i][j].hasFood() ? 1.0 : -1.0;
 
@@ -99,6 +99,7 @@ public class Creature {
             int x = i + dir[0];
             int y = j + dir[1];
 
+            //maybe can remove this
             // wall detection
             inputs[idx++] = world.isWall(x, y) ? 1 : -1;
 
@@ -112,15 +113,19 @@ public class Creature {
         // normalized health
         inputs[idx++] = health / (double)INITIAL_HEALTH;
 
-        // vector pointing to closest food source
+        // vector pointing to closest food source to guide agent
         double[] foodVec = getClosestFoodVector(world);
         double dist = Math.sqrt(foodVec[0]*foodVec[0] + foodVec[1]*foodVec[1]);
 
-        //x direction -1 up 1 down 0 nothing
-        inputs[idx++] = (abs(foodVec[0]) > abs(foodVec[1])) ? (foodVec[0] > 0 ? 1 : -1) : 0;
-
-        // y direction -1 left 1 right 0 nothing
-        inputs[idx++] = (abs(foodVec[1]) > abs(foodVec[0])) ? (foodVec[1] > 0 ? 1 : -1) : 0;
+        //continuous vector
+        if (dist > 0) {
+            inputs[idx++] = foodVec[0] / dist;
+            inputs[idx++] = foodVec[1] / dist;
+        } else {
+            //agent is on food
+            inputs[idx++] = 0.0;
+            inputs[idx++] = 0.0;
+        }
 
         // normalized food dist
         inputs[idx++] = Math.min(1, dist / (world.getSize()/2.0));
@@ -128,28 +133,41 @@ public class Creature {
         return inputs;
     }
 
+    //dk if euclidean or manhattan applies better here?
     private double[] getClosestFoodVector(World world) {
-        double[] bestFoodVector = new double[]{0.0, 0.0};
-        double minDistanceSquared = Double.POSITIVE_INFINITY;
+        double[] vector = new double[]{0.0, 0.0};
+        double closestDistanceSq = Double.POSITIVE_INFINITY;
 
         for (int x = 0; x < world.getSize(); x++) {
             for (int y = 0; y < world.getSize(); y++) {
                 Tile tile = world.world[x][y];
-                if (tile.hasFood()) {
-                    double dx = x - this.i;
-                    double dy = y - this.j;
-                    double currentDistanceSquared = dx * dx + dy * dy;
+                if (!tile.hasFood()) continue;
 
-                    if (currentDistanceSquared < minDistanceSquared) {
-                        minDistanceSquared = currentDistanceSquared;
-                        bestFoodVector[0] = dx;
-                        bestFoodVector[1] = dy;
-                    }
+                double dx = x - this.i;
+                double dy = y - this.j;
+                double distanceSq = dx * dx + dy * dy;
+                //update if better found
+                if (distanceSq < closestDistanceSq) {
+                    closestDistanceSq = distanceSq;
+                    vector[0] = dx;
+                    vector[1] = dy;
                 }
             }
         }
-        return bestFoodVector;
+
+        /*// normalize for far away food inputs
+        double magnitude = Math.sqrt(closestDistanceSq);
+        if (magnitude != 0.0) {
+            vector[0] /= magnitude;
+            vector[1] /= magnitude;
+        } else {
+            vector[0] = 0.0;
+            vector[1] = 0.0; // already on food
+        }*/
+
+        return vector;
     }
+
     private boolean shouldEat() {
         return r.nextDouble() < Config.eatProbability;
     }
@@ -236,41 +254,41 @@ public class Creature {
         }
         else return false;
     }
+    //edit for diff food
     public void consume(){
-        health++;
+        health+= FOOD_REWARD;
     }
-
-
 
     public void evaluateAction(World w) {
         double[] foodVector = getClosestFoodVector(w);
         double currentDistance = Math.sqrt(foodVector[0] * foodVector[0] + foodVector[1] * foodVector[1]);
 
         if (currentDistance < prevFoodDistance) {
-            fitness += 2.0;
+            fitness += 0.5;
         } else {
-            fitness -= 2.5;
+            fitness -= 0;
         }
         prevFoodDistance = currentDistance;
 
         if (hasEaten) {
-            fitness += 25.0;
+            fitness += 50.0;
             timeSinceEaten = 0;
             hasEaten = false;
         } else {
             timeSinceEaten++;
         }
 
-        boolean hitWall = (i == 0 || j == 0 || i == Config.WORLD_SIZE-1 || j == Config.WORLD_SIZE-1);
+        /*boolean hitWall = w.isWall(i,j);
         if (hitWall) {
-            fitness -= 10.0;
+            fitness -= 100;
         }
 
-        fitness += 0.1;
+        if (timeSinceEaten > 10) {
+            fitness -= 10;
+        }*/
 
-        if (timeSinceEaten > 20) {
-            fitness -= 1;
-        }
+        //transfer fitness to genome
+        this.genome.setFitness(fitness);
     }
 
 
@@ -279,7 +297,7 @@ public class Creature {
     }
 
 
-    public int getFitness() {
+    public double getFitness() {
         return fitness;
     }
 }

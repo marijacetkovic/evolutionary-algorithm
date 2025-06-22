@@ -1,26 +1,21 @@
 package io.github.neat;
 
-import java.util.ArrayList;
-import java.util.Random;
+import java.util.*;
+
+import static io.github.neat.Config.*;
+import static io.github.neat.GAOperations.createOffspring;
+import static io.github.neat.GAOperations.tournamentSelect;
 
 public class Species {
     private int id;
     private Genome representative;
     private ArrayList<Genome> members;
-    private double c1, c2, c3;
-    private int n;
 
     public Species(int id,Genome rep) {
         this.id = id;
         this.representative = rep;
         this.members = new ArrayList<>();
         members.add(rep);
-        //parameters for compatibility distance
-        c1 = 1;
-        c2 = 1;
-        c3 = 1;
-        //nr of genes of the larger genome
-        n=1;
     }
 
     public Genome getRepresentative() {
@@ -55,6 +50,7 @@ public class Species {
         double totalDiff = 0;
 
         // calculate normalization factor
+        //should be 1 for small networks?
         int N = Math.max(g1.size(), g2.size());
 
         while (i < g1.size() && j < g2.size()) {
@@ -88,21 +84,100 @@ public class Species {
             excess++;
             j++;
         }
+        double avgDiff = 0;
 
-        double avgDiff = totalDiff / matching;
-
+        if (matching>0) {
+            avgDiff = totalDiff / matching;
+        }
         // compatibility distance formula
-        double delta = (c1 * excess) / N + (c2 * disjoint) / N + c3 * avgDiff;
-
-        // update rep to avoid staticness?
-        setNewRepresentative();
-
+        double delta = (C1 * excess) / N + (C2 * disjoint) / N + C3 * avgDiff;
+        //System.out.println("Delta "+delta);
         return delta;
     }
 
     public void addMember(Genome genome) {
         members.add(genome);
         genome.setSpecies(this);
+    }
+
+    //fitness adjustment wrt species size
+    public void adjustMemberFitness() {
+        if (members.isEmpty()) return;
+        for (Genome g : members) {
+            g.setAdjustedFitness(g.getFitness() / members.size());
+        }
+    }
+
+    public double getAvgAdjustedFitness() {
+        if (members.isEmpty()) return 0.0;
+        double sum = 0.0;
+        for (Genome g : members) {
+            sum += g.getAdjustedFitness();
+        }
+        return sum / members.size();
+    }
+
+    //returns total adjusted fitness of a species
+    public double getSpeciesFitness() {
+        if (members.isEmpty()) return 0.0;
+        double sum = 0.0;
+        for (Genome g : members) {
+            sum += g.getAdjustedFitness();
+        }
+        return sum;
+    }
+
+    //basic species statistics
+    public void printFitnessStats() {
+        if (members.isEmpty()) {
+            System.out.printf("S%d: 0 members extinct %n", id);
+            return;
+        }
+
+        DoubleSummaryStatistics stats = members.stream()
+            .mapToDouble(Genome::getFitness) //convert double stream
+            .summaryStatistics();
+
+        System.out.printf("S%-3d | %8d | %8d | %8d| %8d | %8d%n",
+            id,
+            members.size(),
+            representative.getNodeGenes().size(),
+            Math.round(stats.getMin()),
+            Math.round(stats.getAverage()),
+            Math.round(stats.getMax()));
+    }
+
+    //breeding within the species
+    public ArrayList<Genome> breedInSpecies(int portion) {
+        if (portion <= 0 || members.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        ArrayList<Genome> offspring = new ArrayList<>(portion);
+        ArrayList<Genome> sorted = getSortedMembers();
+
+        //get top species rate genomes - elites from here or from global pop?
+        int elites = (int) Math.min(Math.ceil (ELITE_SPECIES_RATE * portion), sorted.size());
+        System.out.println("Elite chosen "+elites);
+        offspring.addAll(sorted.subList(0, elites));
+
+        for (int i = 0; i < portion; i++) {
+            Genome parent1 = tournamentSelect(sorted);
+            Genome parent2 = tournamentSelect(sorted);
+            offspring.add(createOffspring(parent1, parent2));
+        }
+        return offspring;
+    }
+
+    private ArrayList<Genome> getSortedMembers() {
+        ArrayList<Genome> sorted = new ArrayList<>(members);
+        sorted.sort(Comparator.comparing(Genome::getAdjustedFitness).reversed());
+        return sorted;
+    }
+
+
+    public int getId() {
+        return id;
     }
 }
 

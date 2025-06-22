@@ -29,10 +29,7 @@ public class IntroScreen implements Screen {
         ScreenUtils.clear(Color.BLACK);
         game.viewport.apply();
         game.batch.setProjectionMatrix(game.camera.combined);
-
-
         game.batch.begin();
-
         game.font.setColor(Color.RED);
 
         float titleWidth = game.font.getRegion().getRegionWidth();

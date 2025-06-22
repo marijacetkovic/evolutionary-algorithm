@@ -9,12 +9,12 @@ import com.badlogic.gdx.maps.tiled.TiledMapRenderer;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.utils.ScreenUtils;
-import io.github.evolutionary_algorithm.Creature;
-import io.github.evolutionary_algorithm.Food;
-import io.github.evolutionary_algorithm.Tile;
-import io.github.evolutionary_algorithm.World;
+import io.github.evolutionary_algorithm.*;
+
+import static io.github.ea_gui.Config.*;
 
 public class WorldRenderer {
+    private final EvolutionManager evolutionManager;
     private World world;
     private final Texture tileTexture;
     private final Texture creatureTexture;
@@ -29,16 +29,18 @@ public class WorldRenderer {
     private final TiledMapRenderer renderer;
     int tiled = 1;
 
-    public WorldRenderer(World world, Main game) {
+    public WorldRenderer(World world, Main game, EvolutionManager evolutionManager) {
         this.world = world;
         this.game = game;
         this.n = world.getSize();
         this.tileSize = 32f;
         this.padding = 1/100f;
-        tileTexture = new Texture(Gdx.files.internal("C:/EvolutionaryAlgorithm/assets/tile.png"));
-        creatureTexture = new Texture(Gdx.files.internal("C:/EvolutionaryAlgorithm/assets/monster.png"));
-        foodTexture = new Texture(Gdx.files.internal("C:/EvolutionaryAlgorithm/assets/food1.png"));
-        map = new TmxMapLoader().load("evolAlgMapa50.tmx");
+        this.evolutionManager = evolutionManager;
+        tileTexture = new Texture(Gdx.files.internal(TILE_TEXTURE));
+        creatureTexture = new Texture(Gdx.files.internal(CREATURE_TEXTURE));
+        foodTexture = new Texture(Gdx.files.internal(FOOD_TEXTURE));
+        String mapFilePath = getMapFilePath(this.n);
+        map = new TmxMapLoader().load(mapFilePath);
         renderer = new OrthogonalTiledMapRenderer(map, 1f);
     }
 
@@ -49,7 +51,9 @@ public class WorldRenderer {
         game.batch.begin();
         renderGrid();
         renderTiles();
+        renderUI();
         game.batch.end();
+
     }
 
     private void renderGrid() {
@@ -88,8 +92,25 @@ public class WorldRenderer {
             }
         }
     }
+    private void renderUI() {
+        game.font.setColor(Color.BLACK);
+        game.font.getData().setScale(4f);
+
+        int generation = evolutionManager.getCurrentGeneration();
+        int species = evolutionManager.getSpeciesManager().getSpeciesList().size();
+        float textMargin = 10;
+        OrthographicCamera camera = (OrthographicCamera) game.viewport.getCamera();
+        float x = camera.position.x - camera.viewportWidth / 2f + textMargin;
+        float y = camera.position.y + camera.viewportHeight / 2f - textMargin;
+        game.font.draw(game.batch, "Generation: " + generation, x, y);
+        game.font.draw(game.batch, "Species: " + species, x, y - game.font.getLineHeight() - textMargin / 2);
+
+        game.font.setColor(Color.WHITE); // Reset font color
+    }
 
     private void renderTiles() {
+        game.font.getData().setScale(1f);
+
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
                 Tile tile = world.world[i][j];
@@ -144,6 +165,20 @@ public class WorldRenderer {
     }
     private float calcY(int i){
         return i * (tileSize + padding);
+    }
+    private String getMapFilePath(int worldSize) {
+        String path = "maps/map_" + worldSize + ".tmx";
+        if (!Gdx.files.internal(path).exists()) {
+            throw new IllegalArgumentException("Map file not found for world size " + worldSize);
+        }
+        return path;
+    }
+    public void dispose() {
+        tileTexture.dispose();
+        creatureTexture.dispose();
+        foodTexture.dispose();
+        map.dispose();
+
     }
 }
 

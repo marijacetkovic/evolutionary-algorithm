@@ -11,7 +11,7 @@ public class EatingEvent extends Event{
         this.i = i;
         this.j = j;
         this.w = w;
-       // System.out.println("New eating event by" +c.getId()+"at "+i+" "+j);
+       //System.out.println("New eating event by" +c.getId()+"at "+i+" "+j);
     }
 
     @Override

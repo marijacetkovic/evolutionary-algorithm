@@ -1,28 +1,41 @@
 package io.github.evolutionary_algorithm;
 
-import io.github.neat.GAOperations;
-import io.github.neat.Genome;
-import io.github.neat.INManager;
+import io.github.neat.*;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 import static io.github.evolutionary_algorithm.Config.*;
 import static io.github.evolutionary_algorithm.Config.Phase.EVOLUTIONARY;
+import static io.github.neat.GAOperations.createOffspring;
 import static io.github.neat.GAOperations.tournamentSelect;
 import static io.github.neat.Genome.createRandomGenome;
 
 public class EvolutionManager {
     private static EvolutionManager instance;
     private World world;
+
+    public int getCurrentGeneration() {
+        return currentGeneration;
+    }
+
+    public SpeciesManager getSpeciesManager() {
+        return speciesManager;
+    }
+
     private int currentGeneration;
 
     private Random r;
     private ArrayList<Genome> eliteGenomes;
+    private SpeciesManager speciesManager;
 
     private EvolutionManager() {
         this.currentGeneration = 0;
         this.world = new World(WORLD_SIZE);
+        this.speciesManager = SpeciesManager.getInstance();
         initFirstGeneration();
         this.eliteGenomes = new ArrayList<>();
     }
@@ -44,44 +57,62 @@ public class EvolutionManager {
 
     }
 
+    //training phase for agents
     private boolean runEvolutionaryPhase() {
-        //fitness is recorded already
+        //fitness is evaluated already (from GUI)
+        ArrayList<Genome> currentGenomes = world.getParentsGenome();
+        System.out.println("DEBUG: currentGenomes.size() fetched from World: " + currentGenomes.size()); // <--- ADD THIS LINE
 
-        eliteGenomes.clear();
-        eliteGenomes.addAll(world.getBestIndividuals((int) (ELITE*NUM_CREATURES)));
-        ArrayList<Genome> parents = world.getParentsGenome();
-        ArrayList<Genome> nextGeneration = new ArrayList<>();
+        ArrayList<Genome> nextGen = new ArrayList<>(NUM_CREATURES);
+       // nextGen.addAll(getEliteGenomes());
 
-        //add unchanged
-        nextGeneration.addAll(eliteGenomes);
+        //clears old and respecifies new
+        speciesManager.update(currentGenomes);
+       // int remainingSlots = NUM_CREATURES - nextGen.size();
+        int remainingSlots = NUM_CREATURES;
 
-        while (nextGeneration.size() < NUM_CREATURES) {
-            Genome parent1 = tournamentSelect(parents);
-            Genome parent2 = tournamentSelect(parents);
-            Genome offspring = GAOperations.createOffspring(parent1, parent2);
-            //offspring.analyzeWeights();
-            nextGeneration.add(offspring);
-        }
+        nextGen.addAll(speciesManager.generateOffspring(remainingSlots));
+
+        //prepare world for next gen
         world.reset();
-        world.spawnCreatures(nextGeneration);
-        System.out.println("NExt gen"+nextGeneration.size());
-        currentGeneration++;
+        world.spawnCreatures(ensurePopulationSize(nextGen));
+        speciesManager.getSpeciesStatistics();
 
-        if (currentGeneration >= EVOLUTION_GEN) {
+        boolean endEvolution = ++currentGeneration >= EVOLUTION_GEN;
+        if (endEvolution) {
             transitionToAuto();
         }
-
-        return false;
+        return endEvolution;
     }
 
+    private ArrayList<Genome> getEliteGenomes() {
+        ArrayList<Genome> elite = world.getBestIndividuals((int) Math.round(ELITES*world.getPopulationSize()));
+        eliteGenomes.clear();
+        eliteGenomes = elite;
+        return elite;
+    }
+
+    private ArrayList<Genome> ensurePopulationSize(ArrayList<Genome> population) {
+        while (population.size() < NUM_CREATURES) {
+            population.add(Genome.createRandomGenome());
+            System.out.println("ALOOOO");
+        }
+        return population.stream()
+            .sorted(Comparator.comparing(Genome::getFitness).reversed())
+            .limit(NUM_CREATURES)
+            .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    //runs autonomous agent phase until dead
     private boolean runAutoPhase(){
         currentGeneration+=1;
         if (currentGeneration>MAX_GEN){
-            return true;
+            return true; //simulation complete
         }
         return false;
     }
 
+    //CHECK THIS
     private void transitionToAuto() {
         currentPhase = Phase.AUTO;
         //??
@@ -91,12 +122,16 @@ public class EvolutionManager {
 
     public void initFirstGeneration(){
         world.reset();
-        ArrayList randomGenomes = spawnRandomGeneration();
+        ArrayList<Genome> randomGenomes = spawnRandomGeneration();
+        for (Genome genome : randomGenomes) {
+            speciesManager.addGenome(genome);
+        }
         world.spawnCreatures(randomGenomes);
         currentGeneration++;
+        System.out.println("First gen init with " + randomGenomes.size() + " genomes in " + speciesManager.getSpeciesList().size() + " species.");
     }
 
-    private ArrayList spawnRandomGeneration() {
+    private ArrayList<Genome> spawnRandomGeneration() {
         ArrayList<Genome> randomGenomes = new ArrayList<>();
         for (int i = 0; i < Config.NUM_CREATURES; i++) {
             randomGenomes.add(createRandomGenome());

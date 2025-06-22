@@ -31,6 +31,7 @@ public class INManager implements Serializable {
         return instance;
     }
 
+    //edge innovation id
     public int getInnovationID(Node sourceNode, Node targetNode) {
         if (sourceNode == null || targetNode == null) {
             throw new IllegalArgumentException("Source and target nodes must not be null.");
@@ -92,7 +93,6 @@ public class INManager implements Serializable {
         System.out.println("Last Node ID: " + instance.lastNodeId);
         System.out.println("----------------------------------");
 
-        // Sort edges for readability (optional)
         instance.edgeINMap.entrySet().stream()
             .sorted(Map.Entry.comparingByValue())
             .forEach(entry ->
@@ -114,7 +114,6 @@ public class INManager implements Serializable {
         System.out.println("Last Node ID: " + instance.lastNodeId);
         System.out.println("----------------------------------");
 
-        // Sort by edge innovation number for readability
         instance.nodeINMap.entrySet().stream()
             .sorted(Map.Entry.comparingByKey())
             .forEach(entry ->

@@ -1,22 +1,36 @@
 package io.github.neat;
 
+import java.io.IOException;
+
 import java.util.*;
 
-import static io.github.evolutionary_algorithm.Config.ADD_EDGE_MUTATION_PROB;
-import static io.github.evolutionary_algorithm.Config.ADD_NODE_MUTATION_PROB;
 import static io.github.neat.Config.*;
 import static io.github.neat.NodeType.HIDDEN;
 
 public class GAOperations {
     static Random r = new Random();
 
+    //for now just discarding invalid child - can be replaced w repairs
     public static Genome createOffspring(Genome p1, Genome p2){
-        Genome child = crossover(p1,p2);
-        mutate(child);
-        System.out.println(p1.getNodeGenes().size()+" node nr parent");
-        System.out.println(child.getNodeGenes().size()+" node nr child");
+        Genome child = crossover(p1,p2);;
+        boolean childInvalid = false;
+        try {
+            mutate(child);
+            child.updateStructure();
+        } catch (RuntimeException ex) {
+            childInvalid = true;
+        }
+
+        if (childInvalid) {
+            System.out.println("Invalid child, replaced with mutated fitter parent.");
+            Genome parent = p1.getAdjustedFitness() > p2.getAdjustedFitness() ? p1 : p2;
+            child = new Genome(parent.getNodeGenes(), parent.getEdgeGenes());
+            mutate(child);
+            child.updateStructure();
+        }
         return child;
     }
+
 
     //change the probabilities here
     public static void mutate(Genome g){
@@ -49,7 +63,7 @@ public class GAOperations {
         int IN = INManager.getInstance().getInnovationID(a,b);
         Edge e = new Edge(a,b,weight,IN);
         g.addEdge(e);
-        System.out.println("Mutated edge");
+        //System.out.println("Mutated edge");
     }
 
     static boolean formsCycle(Genome g, Node a, Node b) {
@@ -89,7 +103,7 @@ public class GAOperations {
         if (prob < ADD_NODE_MUTATION_PROB) {
             addNodeMutation(g);
         }
-        else {
+        if (prob < TOGGLE_CONN_MUTATION_PROB) {
             toggleConnection(g);
         }
     }
@@ -97,7 +111,20 @@ public class GAOperations {
         if (g.getEdgeGenes().isEmpty()) return;
 
         Edge edge = g.getEdgeGenes().get(r.nextInt(g.getEdgeGenes().size()));
-        edge.setEnabled(!edge.isEnabled());
+
+        //try enabling
+        if (!edge.isEnabled()) {
+            Node source = edge.getSourceNode();
+            Node target = edge.getTargetNode();
+
+            // if doesnt form a cycle
+            if (!formsCycle(g, source, target)) {
+                edge.setEnabled(true);
+            }
+        } else {
+            //safe to disable
+            edge.setEnabled(false);
+        }
     }
     public static void mutateWeights(Genome g) {
         for (Edge e : g.getEdgeGenes()) {
@@ -144,7 +171,7 @@ public class GAOperations {
         }
         while(!e.isEnabled());
         e.disable();
-        System.out.println("Split edge "+e.getInnovationNumber());
+        //System.out.println("Split edge "+e.getInnovationNumber());
         int id = INManager.getInstance().getNodeID(e.getInnovationNumber());
         Node n = new Node(id, HIDDEN);
         Node src = e.getSourceNode();
@@ -156,7 +183,7 @@ public class GAOperations {
         g.addEdge(e1);
         g.addEdge(e2);
         g.addNode(n);
-        System.out.println("Mutated node");
+        //System.out.println("Mutated node");
 
     }
 
@@ -256,9 +283,7 @@ public class GAOperations {
         return new Object[]{childEdges, childNodes};
     }
 
-    public static Genome crossover(Genome p1, Genome p2){
-        //double f1 = p1.getFitness();
-        //double f2 = p2.getFitness();
+    static Genome crossover(Genome p1, Genome p2){
         ArrayList<Edge> m = new ArrayList<>();
         ArrayList<Edge> d = new ArrayList<>();
         ArrayList<Edge> e = new ArrayList<>();
@@ -271,16 +296,16 @@ public class GAOperations {
         //create offspring
         Genome child = new Genome(childNodeGenes, childEdgeGenes);
 
-        //assign offspring a species through species manager
-        //SpeciesManager speciesManager = SpeciesManager.getInstance();
-        //speciesManager.addGenome(child);
-
         return child;
     }
 
     public static Genome tournamentSelect(List<Genome> parents) {
         Genome best = null;
         double bestFitness = Double.NEGATIVE_INFINITY;
+
+        if (r.nextDouble() < TOURNAMENT_RND_PROB) {
+            return parents.get(r.nextInt(parents.size()));
+        }
 
         for (int i = 0; i < TOURNAMENT_SIZE; i++) {
             Genome candidate = parents.get(r.nextInt(parents.size()));
@@ -291,6 +316,9 @@ public class GAOperations {
         }
         return best;
     }
-
+    public static double getInitialRandomWeight() {
+        //[-0.2,0.2]
+        return (r.nextDouble() * 0.4) - 0.2;
+    }
 
 }

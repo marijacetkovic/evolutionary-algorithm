@@ -19,14 +19,13 @@ public class Main extends Game {
         batch = new SpriteBatch();
         font = new BitmapFont(); //default font
         camera = new OrthographicCamera();
-
         viewport = new ScreenViewport(camera);
 
         camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         camera.update();
 
         font.setUseIntegerPositions(false);
-        font.getData().setScale(Gdx.graphics.getWidth() / Gdx.graphics.getHeight());
+        font.getData().setScale(1f);
         String[] text = new String[]{
             "Welcome to the Evolution Simulation!",
             "Tap anywhere to begin!"

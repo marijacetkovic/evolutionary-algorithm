@@ -30,7 +30,7 @@ public class SimulationScreen implements Screen {
     public void show() {
         evolutionManager = EvolutionManager.getInstance();
         world = evolutionManager.getWorld();
-        worldRenderer = new WorldRenderer(world,game);
+        worldRenderer = new WorldRenderer(world,game,evolutionManager);
     }
     float time;
     @Override

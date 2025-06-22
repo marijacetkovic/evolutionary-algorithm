@@ -2,9 +2,6 @@ package io.github.neat;
 
 import java.io.Serializable;
 import java.util.*;
-
-import static io.github.evolutionary_algorithm.Config.MAX_INITIAL_WEIGHT;
-import static io.github.evolutionary_algorithm.Config.MIN_INITIAL_WEIGHT;
 import static io.github.neat.Config.*;
 import static io.github.neat.GAOperations.r;
 import static io.github.neat.NodeType.*;
@@ -18,11 +15,10 @@ public class Genome implements Serializable {
     private ArrayList<Node> outputNodes;
 
     private Species species;
-    private double fitness=1;
+    private double fitness;
     //no need to serialize
     private transient ArrayList<Node> topologicallySortedNodes;
-
-
+    private double adjustedFitness;
 
     public Genome(ArrayList<Node> nodeGenes, ArrayList<Edge> edgeGenes) {
         this.nodeGenes = new ArrayList<>(nodeGenes);
@@ -30,7 +26,8 @@ public class Genome implements Serializable {
         inputNodes = new ArrayList<>();
         hiddenNodes = new ArrayList<>();
         outputNodes = new ArrayList<>();
-        categorizeNodes();
+        this.fitness = 0;
+        //updateStructure();
     }
 
     public Genome() {
@@ -39,6 +36,7 @@ public class Genome implements Serializable {
         inputNodes = new ArrayList<>();
         hiddenNodes = new ArrayList<>();
         outputNodes = new ArrayList<>();
+        this.fitness = 0;
     }
 
     void categorizeNodes() {
@@ -70,26 +68,25 @@ public class Genome implements Serializable {
         //}
         this.nodeGenes = g.nodeGenes;
         this.edgeGenes = g.edgeGenes;
-        topologicallySort();
-        categorizeNodes();
+        updateStructure();
         System.out.println(inputNodes.size()+" input nodes size");
     }
 
-    public ArrayList<Node> topologicallySort() {
+    public void topoSort() {
         List<Node> sorted = new ArrayList<>();
         Set<Node> visited = new HashSet<>();
 
         for (Node node : nodeGenes) {
             if (!visited.contains(node)) {
                 if (!visit(node, visited, new HashSet<>(), sorted)) {
-                    printGenotype(this);
+                    //printGenotype();
                     throw new RuntimeException("Cycle detected in network.");
                 }
             }
         }
 
         Collections.reverse(sorted);
-        return (ArrayList<Node>) sorted;
+        this.topologicallySortedNodes = (ArrayList<Node>) sorted;
     }
 
     private boolean visit(Node node, Set<Node> visited, Set<Node> stack, List<Node> sorted) {
@@ -108,14 +105,10 @@ public class Genome implements Serializable {
     }
 
 
-    public void printGenotype(Genome genome) {
-        if (genome == null) {
-            System.out.println("Genome is null.");
-            return;
-        }
+    public void printGenotype() {
 
         System.out.println("Genome ID: ");
-        System.out.println("Fitness: " + genome.getFitness());
+        System.out.println("Fitness: " + this.fitness);
         System.out.println("Nodes:");
 
         for (Node node : nodeGenes) {
@@ -133,6 +126,7 @@ public class Genome implements Serializable {
         initInputNodes();
         initOutputNodes();
         initConnections();
+        updateStructure();
     }
 
     //prevent returning genes directly
@@ -160,8 +154,6 @@ public class Genome implements Serializable {
     }
     public void addEdge(Edge e){
         this.edgeGenes.add(e);
-        //this is bad
-        e.getTargetNode().addIncomingEdge(e);
     }
     public void analyzeWeights() {
         double avg = 0, min = 0, max = 0;
@@ -312,31 +304,71 @@ public class Genome implements Serializable {
         }
     }
 
-    private double[] getOutput(){
+    public double[] getOutput() {
         double[] output = new double[outputNodes.size()];
         for (int i = 0; i < outputNodes.size(); i++) {
             output[i] = outputNodes.get(i).getActivationValue();
         }
+
+        //System.out.print(this+"Network Output:");
+//        for (int i = 0; i < output.length; i++) {
+//            System.out.printf("%.4f", output[i]);
+//            if (i < output.length - 1) {
+//                System.out.print(", ");
+//            }
+//        }
+        //System.out.println();
+
         return output;
     }
-
     // get all outgoing edges from a given node
     public List<Edge> getOutgoingEdges(Node node) {
         List<Edge> outgoing = new ArrayList<>();
         for (Edge e : this.edgeGenes) {
-            if (e.getSourceNode().equals(node)) {
+            if (e.isEnabled() && e.getSourceNode().equals(node)) {
                 outgoing.add(e);
             }
         }
         return outgoing;
     }
 
-
     public double getFitness() {
         return fitness;
     }
 
+    //taken from Creature after fitness evaluation
     public void setFitness(double v) {
         fitness = v;
+        //System.out.println("Updated fitness"+v);
+    }
+
+    //structure validation and update
+    public void updateStructure() {
+        categorizeNodes();
+        setupIncomingEdges();
+        topoSort();
+    }
+
+    public void validate(){
+        topoSort();
+    }
+
+    //decides input of each node for propagation
+    private void setupIncomingEdges() {
+        for (Node n : nodeGenes) {
+            n.getIncomingEdges().clear();
+        }
+
+        for (Edge e : edgeGenes) {
+            e.getTargetNode().addIncomingEdge(e);
+        }
+    }
+
+    public void setAdjustedFitness(double v) {
+        this.adjustedFitness = v;
+    }
+
+    public double getAdjustedFitness() {
+        return this.adjustedFitness;
     }
 }
