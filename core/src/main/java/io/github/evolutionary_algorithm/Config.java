@@ -2,7 +2,7 @@ package io.github.evolutionary_algorithm;
 
 public class Config {
     public static final int WORLD_SIZE = 100;
-    public static final int CREATURE_LOCATION_BOUND = 100;
+    public static final int CREATURE_LOCATION_BOUND = WORLD_SIZE;
 
     public static final int NUM_CREATURES = 500;
     public static final double ELITES = 0.03;

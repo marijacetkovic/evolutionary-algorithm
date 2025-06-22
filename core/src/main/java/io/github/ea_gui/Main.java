@@ -25,12 +25,11 @@ public class Main extends Game {
         camera.update();
 
         font.setUseIntegerPositions(false);
-        font.getData().setScale(1f);
         String[] text = new String[]{
             "Welcome to the Evolution Simulation!",
             "Tap anywhere to begin!"
         };
-        this.setScreen(new IntroScreen(this,text,true));
+        this.setScreen(new InfoScreen(this,text,true));
     }
 
     @Override

@@ -1,19 +1,16 @@
 package io.github.ea_gui;
 
-import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.utils.ScreenUtils;
 
-import static java.lang.System.exit;
-
-public class IntroScreen implements Screen {
+public class InfoScreen implements Screen {
     private final Main game;
     private String[] text;
     private boolean start;
 
-    public IntroScreen(Main game,String[] text, boolean start) {
+    public InfoScreen(Main game, String[] text, boolean start) {
         this.game = game;
         this.text = text;
         this.start = start;
@@ -27,6 +24,7 @@ public class IntroScreen implements Screen {
     @Override
     public void render(float delta) {
         ScreenUtils.clear(Color.BLACK);
+        game.font.getData().setScale(1f);
         game.viewport.apply();
         game.batch.setProjectionMatrix(game.camera.combined);
         game.batch.begin();

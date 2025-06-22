@@ -2,7 +2,13 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/EvolutionaryAlgorithm.iml" filepath="$PROJECT_DIR$/EvolutionaryAlgorithm.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/EvolutionaryAlgorithm.iml" filepath="$PROJECT_DIR$/.idea/modules/EvolutionaryAlgorithm.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/core/EvolutionaryAlgorithm.core.iml" filepath="$PROJECT_DIR$/.idea/modules/core/EvolutionaryAlgorithm.core.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/core/EvolutionaryAlgorithm.core.main.iml" filepath="$PROJECT_DIR$/.idea/modules/core/EvolutionaryAlgorithm.core.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/core/EvolutionaryAlgorithm.core.test.iml" filepath="$PROJECT_DIR$/.idea/modules/core/EvolutionaryAlgorithm.core.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/lwjgl3/EvolutionaryAlgorithm.lwjgl3.iml" filepath="$PROJECT_DIR$/.idea/modules/lwjgl3/EvolutionaryAlgorithm.lwjgl3.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/lwjgl3/EvolutionaryAlgorithm.lwjgl3.main.iml" filepath="$PROJECT_DIR$/.idea/modules/lwjgl3/EvolutionaryAlgorithm.lwjgl3.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/lwjgl3/EvolutionaryAlgorithm.lwjgl3.test.iml" filepath="$PROJECT_DIR$/.idea/modules/lwjgl3/EvolutionaryAlgorithm.lwjgl3.test.iml" />
     </modules>
   </component>
 </project>

@@ -1,12 +1,6 @@
 package io.github.ea_gui;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.utils.ScreenUtils;
-import io.github.evolutionary_algorithm.Config;
 import io.github.evolutionary_algorithm.EvolutionManager;
 import io.github.evolutionary_algorithm.World;
 
@@ -45,7 +39,8 @@ public class SimulationScreen implements Screen {
                 boolean simulationComplete = evolutionManager.update();
 
                 if (simulationComplete) {
-                    game.setScreen(new IntroScreen(game, text, false));
+                    worldRenderer.dispose();
+                    game.setScreen(new InfoScreen(game, text, false));
                     return;
                 }
             }
@@ -78,6 +73,5 @@ public class SimulationScreen implements Screen {
 
     @Override
     public void dispose() {
-
     }
 }

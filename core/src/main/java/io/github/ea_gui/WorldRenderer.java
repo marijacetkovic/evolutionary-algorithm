@@ -53,7 +53,6 @@ public class WorldRenderer {
         renderTiles();
         renderUI();
         game.batch.end();
-
     }
 
     private void renderGrid() {
@@ -78,8 +77,6 @@ public class WorldRenderer {
 
             renderer.setView(camera);
             renderer.render();
-
-
 
         }
         else {
@@ -178,7 +175,6 @@ public class WorldRenderer {
         creatureTexture.dispose();
         foodTexture.dispose();
         map.dispose();
-
     }
 }
 
