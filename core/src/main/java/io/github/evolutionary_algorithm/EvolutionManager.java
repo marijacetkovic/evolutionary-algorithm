@@ -16,6 +16,7 @@ import static io.github.neat.Genome.createRandomGenome;
 
 public class EvolutionManager {
     private static EvolutionManager instance;
+    private final FoodSpawnManager foodSpawnManager;
     private World world;
 
     public int getCurrentGeneration() {
@@ -35,6 +36,7 @@ public class EvolutionManager {
     private EvolutionManager() {
         this.currentGeneration = 0;
         this.world = new World(WORLD_SIZE);
+        this.foodSpawnManager = new FoodSpawnManager(world);
         this.speciesManager = SpeciesManager.getInstance();
         initFirstGeneration();
         this.eliteGenomes = new ArrayList<>();
@@ -76,6 +78,8 @@ public class EvolutionManager {
         //prepare world for next gen
         world.reset();
         world.spawnCreatures(ensurePopulationSize(nextGen));
+        foodSpawnManager.incrementGeneration();
+        foodSpawnManager.spawnFood(NUM_FOOD);
         speciesManager.getSpeciesStatistics();
 
         boolean endEvolution = ++currentGeneration >= EVOLUTION_GEN;
@@ -128,6 +132,8 @@ public class EvolutionManager {
         }
         world.spawnCreatures(randomGenomes);
         currentGeneration++;
+        foodSpawnManager.incrementGeneration();
+        foodSpawnManager.spawnFood(NUM_FOOD);
         System.out.println("First gen init with " + randomGenomes.size() + " genomes in " + speciesManager.getSpeciesList().size() + " species.");
     }
 
@@ -147,5 +153,9 @@ public class EvolutionManager {
 
     public World getWorld() {
         return world;
+    }
+
+    public void monitor() {
+        foodSpawnManager.checkFoodQuantity();
     }
 }

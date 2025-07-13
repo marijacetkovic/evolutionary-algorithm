@@ -35,7 +35,7 @@ public class SimulationScreen implements Screen {
 
         while (accumulator >= FIXED_TIMESTEP) {
             boolean populationAlive = world.behave();
-
+            evolutionManager.monitor();
             if(!populationAlive) {
                 boolean simulationComplete = evolutionManager.update();
 

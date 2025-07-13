@@ -4,10 +4,10 @@ import io.github.neat.GAOperations;
 import io.github.neat.Genome;
 
 public class BreedingEvent extends Event{
-    private Creature parentX;
-    private Creature parentY;
+    private AbstractCreature parentX;
+    private AbstractCreature parentY;
     private World w;
-    public BreedingEvent(Creature x, Creature y, World w){
+    public BreedingEvent(AbstractCreature x, AbstractCreature y, World w){
         this.name = "breed";
         this.parentX = x;
         this.parentY = y;
@@ -16,18 +16,18 @@ public class BreedingEvent extends Event{
     }
 
 
-    public Creature getParentX() {
+    public AbstractCreature getParentX() {
         return parentX;
     }
 
-    public Creature getParentY() {
+    public AbstractCreature getParentY() {
         return parentY;
     }
 
     @Override
     public void process() {
         Genome childGenome = GAOperations.createOffspring(parentX.getGenome(), parentY.getGenome());
-        Creature c = w.spawnChild(childGenome);
+        AbstractCreature c = w.spawnChild(childGenome);
         if(c!=null){
             System.out.println("Creature "+ parentX.getId()+" creature "+parentY.getId()+" created "+c.getId());
         }

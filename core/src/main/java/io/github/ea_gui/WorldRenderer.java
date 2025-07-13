@@ -116,7 +116,7 @@ public class WorldRenderer {
 
 
                 for (Integer creatureId : tile.getCreatures()) {
-                    Creature c = world.findCreatureById(creatureId);
+                    AbstractCreature c = world.findCreatureById(creatureId);
                     if (c != null) {
                         game.batch.draw(creatureTexture, x, y, tileSize, tileSize);
                         game.font.setColor(Color.GREEN);
@@ -138,7 +138,7 @@ public class WorldRenderer {
 
 
     private void renderCreatures() {
-        for (Creature c : world.getPopulation()) {
+        for (AbstractCreature c : world.getPopulation()) {
             float x = calcX(c.getJ());
             float y = calcY(n - 1 - c.getI());
             game.batch.draw(creatureTexture, x, y, tileSize, tileSize);
