@@ -40,4 +40,6 @@ public class Config {
         EVOLUTIONARY,
         AUTO
     }
+    public static final String METRICS_FILE = "output/metrics.csv";
+
 }
