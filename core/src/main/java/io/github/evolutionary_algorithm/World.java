@@ -50,6 +50,9 @@ public class World {
     public ArrayList<AbstractCreature> getPopulation() {
         return population;
     }
+    public ArrayList<AbstractCreature> getPrevPopulation() {
+        return prevPopulation;
+    }
 
     public void reset(){
         this.lastId = 0;
@@ -118,26 +121,14 @@ public class World {
     }
 
     public boolean behave() {
-        //printMatrix();
         population.forEach(c -> c.takeAction(eventManager, this));
         population.forEach(c -> c.evaluateAction(this));
         removeDead();
         eventManager.process();
         updateBestFitnessIndividual();
-        //checkFoodQuantity();
        // updateBreedingThreshold();
         return !population.isEmpty();
     }
-
-    ArrayList<Genome> getBestIndividuals(int k) {
-        prevPopulation.sort(Comparator.comparingDouble(AbstractCreature::getFitness).reversed());
-        ArrayList<Genome> bestGenomes = new ArrayList<>();
-        for (int i = 0; i < Math.min(k, prevPopulation.size()); i++) {
-            bestGenomes.add(prevPopulation.get(i).getGenome());
-        }
-        return bestGenomes;
-    }
-
 
     private void updateBreedingThreshold() {
         Config.breedingThreshold = bestFitnessCreature.getFitness() / 2;
@@ -248,14 +239,6 @@ public class World {
 
     public int increaseGeneration() {
         return ++this.generation;
-    }
-
-    public ArrayList<Genome> getParentsGenome() {
-        ArrayList<Genome> parents = new ArrayList<>();
-        for (AbstractCreature c: prevPopulation) {
-            parents.add(c.getGenome());
-        }
-        return parents;
     }
 
     public boolean isWall(int x, int y) {

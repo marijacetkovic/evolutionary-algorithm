@@ -27,9 +27,11 @@ public class Species {
     }
 
     public ArrayList<Genome> getMembers() {
-        return members;
+        return new ArrayList<>(members);
     }
-
+    public void clearMembers() {
+        members.clear();
+    }
     public void setMembers(ArrayList<Genome> members) {
         this.members = members;
     }

@@ -1,43 +1,29 @@
 package io.github.evolutionary_algorithm;
 
 import io.github.neat.*;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Random;
-import java.util.stream.Collectors;
-
+import java.util.*;
 import static io.github.evolutionary_algorithm.Config.*;
 import static io.github.evolutionary_algorithm.Config.Phase.EVOLUTIONARY;
-import static io.github.neat.GAOperations.createOffspring;
-import static io.github.neat.GAOperations.tournamentSelect;
-import static io.github.neat.Genome.createRandomGenome;
 
 public class EvolutionManager {
     private static EvolutionManager instance;
     private final FoodSpawnManager foodSpawnManager;
+    private final NEATManager neatManager;
     private World world;
 
     public int getCurrentGeneration() {
         return currentGeneration;
     }
-
-    public SpeciesManager getSpeciesManager() {
-        return speciesManager;
-    }
-
     private int currentGeneration;
 
     private Random r;
     private ArrayList<Genome> eliteGenomes;
-    private SpeciesManager speciesManager;
 
     private EvolutionManager() {
         this.currentGeneration = 0;
         this.world = new World(WORLD_SIZE);
         this.foodSpawnManager = new FoodSpawnManager(world);
-        this.speciesManager = SpeciesManager.getInstance();
+        this.neatManager = new NEATManager(NUM_CREATURES);
         initFirstGeneration();
         this.eliteGenomes = new ArrayList<>();
     }
@@ -50,61 +36,27 @@ public class EvolutionManager {
     }
 
     public boolean update() {
-        if (currentPhase == EVOLUTIONARY) {
-            return runEvolutionaryPhase();
-        }
-        else{
-            return runAutoPhase();
-        }
-
+        if (currentPhase == EVOLUTIONARY) return runEvolutionaryPhase();
+        else return runAutoPhase();
     }
 
     //training phase for agents
     private boolean runEvolutionaryPhase() {
         //fitness is evaluated already (from GUI)
-        ArrayList<Genome> currentGenomes = world.getParentsGenome();
-        System.out.println("DEBUG: currentGenomes.size() fetched from World: " + currentGenomes.size()); // <--- ADD THIS LINE
-
-        ArrayList<Genome> nextGen = new ArrayList<>(NUM_CREATURES);
-       // nextGen.addAll(getEliteGenomes());
-
-        //clears old and respecifies new
-        speciesManager.update(currentGenomes);
-       // int remainingSlots = NUM_CREATURES - nextGen.size();
-        int remainingSlots = NUM_CREATURES;
-
-        nextGen.addAll(speciesManager.generateOffspring(remainingSlots));
+        ArrayList<AbstractCreature> currentCreatures = world.getPrevPopulation();
+        ArrayList<Genome> nextGen = neatManager.evolveGeneration(currentCreatures);
 
         //prepare world for next gen
         world.reset();
-        world.spawnCreatures(ensurePopulationSize(nextGen));
-        foodSpawnManager.incrementGeneration();
-        foodSpawnManager.spawnFood(NUM_FOOD);
-        speciesManager.getSpeciesStatistics();
+        world.spawnCreatures(nextGen);
+        foodSpawnManager.spawnFood(NUM_FOOD, currentGeneration);
+        neatManager.getSpeciesManager().getSpeciesStatistics();
 
         boolean endEvolution = ++currentGeneration >= EVOLUTION_GEN;
         if (endEvolution) {
             transitionToAuto();
         }
         return endEvolution;
-    }
-
-    private ArrayList<Genome> getEliteGenomes() {
-        ArrayList<Genome> elite = world.getBestIndividuals((int) Math.round(ELITES*world.getPopulationSize()));
-        eliteGenomes.clear();
-        eliteGenomes = elite;
-        return elite;
-    }
-
-    private ArrayList<Genome> ensurePopulationSize(ArrayList<Genome> population) {
-        while (population.size() < NUM_CREATURES) {
-            population.add(Genome.createRandomGenome());
-            System.out.println("ALOOOO");
-        }
-        return population.stream()
-            .sorted(Comparator.comparing(Genome::getFitness).reversed())
-            .limit(NUM_CREATURES)
-            .collect(Collectors.toCollection(ArrayList::new));
     }
 
     //runs autonomous agent phase until dead
@@ -126,27 +78,14 @@ public class EvolutionManager {
 
     public void initFirstGeneration(){
         world.reset();
-        ArrayList<Genome> randomGenomes = spawnRandomGeneration();
-        for (Genome genome : randomGenomes) {
-            speciesManager.addGenome(genome);
-        }
+        ArrayList<Genome> randomGenomes = neatManager.initFirstGeneration();
         world.spawnCreatures(randomGenomes);
         currentGeneration++;
-        foodSpawnManager.incrementGeneration();
-        foodSpawnManager.spawnFood(NUM_FOOD);
-        System.out.println("First gen init with " + randomGenomes.size() + " genomes in " + speciesManager.getSpeciesList().size() + " species.");
-    }
-
-    private ArrayList<Genome> spawnRandomGeneration() {
-        ArrayList<Genome> randomGenomes = new ArrayList<>();
-        for (int i = 0; i < Config.NUM_CREATURES; i++) {
-            randomGenomes.add(createRandomGenome());
-        }
-        return randomGenomes;
+        foodSpawnManager.spawnFood(NUM_FOOD,currentGeneration);
     }
 
     private void saveProgress() {
-        ArrayList<Genome> bestGenomes = world.getBestIndividuals(5);
+        ArrayList<Genome> bestGenomes = neatManager.getBestIndividuals(5);
         GenomeSerializer.saveGenomeList(bestGenomes, "best_genomes.ser");
         INManager.saveToFile("inmanager_state.ser");
     }
@@ -156,6 +95,10 @@ public class EvolutionManager {
     }
 
     public void monitor() {
-        foodSpawnManager.checkFoodQuantity();
+        foodSpawnManager.checkFoodQuantity(currentGeneration);
+    }
+
+    public NEATManager getNeatManager() {
+        return neatManager;
     }
 }

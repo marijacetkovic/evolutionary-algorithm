@@ -38,8 +38,10 @@ public class GAOperations {
         if (r.nextDouble() < Config.WEIGHT_MUTATION_RATE) {
             mutateWeights(g);
         }
-
-        if (r.nextDouble() < Config.STRUCTURAL_MUTATION_RATE) {
+        if (r.nextDouble() < NODE_BIAS_MUTATION_RATE) {
+            mutateBias(g);
+        }
+        if (r.nextDouble() < STRUCTURAL_MUTATION_RATE) {
             mutateStructure(g);
         }
     }
@@ -147,19 +149,19 @@ public class GAOperations {
             if (n.getNodeType() == NodeType.INPUT) {
                 continue;
             }
-            if (r.nextDouble() < NODE_BIAS_MUTATION_RATE) {
-                double newBias;
-                //small mutation
-                if (r.nextDouble() < GAUSSIAN_BIAS_MUTATION_PROB) {
-                    newBias = n.getBias() + r.nextGaussian() * BIAS_MUTATION_STRENGTH;
-                } else {
-                    //rnd restart
-                    newBias = g.randomWeight();
-                }
-                //clamp
-                newBias = Math.max(MIN_BIAS, Math.min(MAX_BIAS, newBias));
-                n.setBias(newBias);
+
+            double newBias;
+            //small mutation
+            if (r.nextDouble() < GAUSSIAN_BIAS_MUTATION_PROB) {
+                newBias = n.getBias() + r.nextGaussian() * BIAS_MUTATION_STRENGTH;
+            } else {
+                //rnd restart
+                newBias = g.randomWeight();
             }
+            //clamp
+            newBias = Math.max(MIN_BIAS, Math.min(MAX_BIAS, newBias));
+            n.setBias(newBias);
+
         }
     }
     public static void addNodeMutation(Genome g){

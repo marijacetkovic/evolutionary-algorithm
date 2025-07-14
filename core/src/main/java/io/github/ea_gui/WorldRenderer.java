@@ -94,7 +94,7 @@ public class WorldRenderer {
         game.font.getData().setScale(4f);
 
         int generation = evolutionManager.getCurrentGeneration();
-        int species = evolutionManager.getSpeciesManager().getSpeciesList().size();
+        int species = evolutionManager.getNeatManager().getSpeciesManager().getSpeciesList().size();
         float textMargin = 10;
         OrthographicCamera camera = (OrthographicCamera) game.viewport.getCamera();
         float x = camera.position.x - camera.viewportWidth / 2f + textMargin;

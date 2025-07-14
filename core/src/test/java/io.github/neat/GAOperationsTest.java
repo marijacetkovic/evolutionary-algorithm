@@ -115,7 +115,7 @@ public class GAOperationsTest {
 
         GAOperations.crossover(parent1, parent2);
 
-        SpeciesManager speciesManager = SpeciesManager.getInstance();
+        SpeciesManager speciesManager = new SpeciesManager();
         Genome child = speciesManager.getLastAddedGenome();
 
         assertNotNull(child, "Child genome should not be null");

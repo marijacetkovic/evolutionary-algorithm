@@ -2,6 +2,7 @@ package io.github.neat;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.List;
 
 import static io.github.neat.Config.COMPATIBILITY_THRESHOLD;
 
@@ -12,15 +13,8 @@ public class SpeciesManager {
     private Genome lastAddedGenome;
     private int nextSpeciesId = 0;
 
-    private SpeciesManager() {
+    public SpeciesManager() {
         this.speciesList = new ArrayList<>();
-    }
-
-    public static SpeciesManager getInstance(){
-        if (speciesManager == null){
-            speciesManager = new SpeciesManager();
-        }
-        return speciesManager;
     }
 
     public Species addGenome(Genome genome) {
@@ -48,11 +42,13 @@ public class SpeciesManager {
 
     //clears all members of species and removes empty species
     public void update(ArrayList<Genome> currentGenomes) {
+        System.out.println("DEBUG: currenGenomes size in SpeciesManager "+currentGenomes.size());
         speciesList.removeIf(s -> s.getMembers().isEmpty());
 
         for (Species s : speciesList) {
-            s.getMembers().clear();
+            s.clearMembers();
         }
+
         //respecify
         for (Genome genome : currentGenomes) {
             addGenome(genome);
@@ -117,5 +113,12 @@ public class SpeciesManager {
         }
         return portion;
     }
-
+    public List<Genome> getGenomes() {
+        List<Genome> all = new ArrayList<>();
+        for (Species s : speciesList) {
+            all.addAll(s.getMembers());
+        }
+        all.sort(Comparator.comparingDouble(Genome::getFitness).reversed());
+        return all;
+    }
 }
