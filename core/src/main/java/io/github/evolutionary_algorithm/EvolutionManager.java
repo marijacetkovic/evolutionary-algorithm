@@ -9,6 +9,7 @@ public class EvolutionManager {
     private static EvolutionManager instance;
     private final FoodSpawnManager foodSpawnManager;
     private final NEATManager neatManager;
+    private final MetricsManager metricsManager;
     private World world;
 
     public int getCurrentGeneration() {
@@ -24,6 +25,7 @@ public class EvolutionManager {
         this.world = new World(WORLD_SIZE);
         this.foodSpawnManager = new FoodSpawnManager(world);
         this.neatManager = new NEATManager(NUM_CREATURES);
+        this.metricsManager = MetricsManager.getInstance();
         initFirstGeneration();
         this.eliteGenomes = new ArrayList<>();
     }
@@ -51,7 +53,7 @@ public class EvolutionManager {
         world.spawnCreatures(nextGen);
         foodSpawnManager.spawnFood(NUM_FOOD, currentGeneration);
         neatManager.getSpeciesManager().getSpeciesStatistics();
-
+        metricsManager.log(nextGen,neatManager.getSpeciesManager().getSpeciesList());
         boolean endEvolution = ++currentGeneration >= EVOLUTION_GEN;
         if (endEvolution) {
             transitionToAuto();
@@ -73,6 +75,7 @@ public class EvolutionManager {
         currentPhase = Phase.AUTO;
         //??
         world.spawnCreatures(eliteGenomes);
+        metricsManager.exportMetrics();
         System.out.println("Transitioned to autonomous phase.");
     }
 

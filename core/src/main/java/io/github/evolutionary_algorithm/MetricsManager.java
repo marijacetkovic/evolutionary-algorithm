@@ -81,6 +81,8 @@ public class MetricsManager {
     private void recordDiversity(ArrayList<Species> speciesList){
         speciesCountHistory.add(speciesList.size());
     }
+
+    //this should be changed
     private double computeNetworkDensity(Genome genome) {
         int n = genome.getNodeGenes().size();
         int maxEdges = n * (n - 1); //fully con directed graph

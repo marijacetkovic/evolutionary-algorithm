@@ -1,4 +1,4 @@
-package io.github.evolutionary_algorithm;
+package io.github.neat;
 
 import io.github.neat.Genome;
 

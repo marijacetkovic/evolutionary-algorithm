@@ -172,9 +172,7 @@ public class World {
         remove(creature.getI(), creature.getJ(), creature.getId());
         creature.updatePosition(i, j);
         //System.out.println("Creature " + creature.getId() + " H:"+creature.getHealth()+" moved to " + i + "," + j);
-
     }
-
 
     public void remove(int i, int j, int creatureId) {
         world[i][j].removeCreature(creatureId);
@@ -189,9 +187,8 @@ public class World {
     public void cutFood(int i, int j){
         for (Food f:food) if (f.getI()==i && f.getJ()==j) {
             boolean flag = food.remove(f);
-            //System.out.println("Removed"+flag);
-            //System.out.println("after removing"+food.size());
-            return;}
+            return;
+        }
     }
 
 //    public List<Creature> checkEligibleMate(Creature c){
@@ -202,7 +199,7 @@ public class World {
 //        return checkAdjacentTile(c);
 //    }
 
-    //must be changed
+        //must be changed
         public List<AbstractCreature> checkMateTile(Creature c){
             List<Integer> ids = world[c.getI()][c.getJ()].getOtherCreatures(c.getId());
             return findCreaturesById(ids);
@@ -232,14 +229,6 @@ public class World {
         public AbstractCreature findCreatureById(Integer id){
            return population.stream().filter(c->c.getId()==id).findFirst().orElse(null);
         }
-
-    public boolean isPopulationAlive() {
-        return !population.isEmpty();
-    }
-
-    public int increaseGeneration() {
-        return ++this.generation;
-    }
 
     public boolean isWall(int x, int y) {
         return x == 0 || x == world.length - 1 || y == 0 || y == world.length - 1;

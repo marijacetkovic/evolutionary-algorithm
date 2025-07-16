@@ -6,7 +6,7 @@ public class Config {
 
     public static final int NUM_CREATURES = 500;
     public static final double ELITES = 0.03;
-    public static final int MAX_GEN = 100;
+    public static final int MAX_GEN = 70;
     public static final int EVOLUTION_GEN = MAX_GEN+1;
 
     public static final int MAX_CREATURES = 550;
