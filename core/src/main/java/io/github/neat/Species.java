@@ -1,12 +1,13 @@
 package io.github.neat;
 
+import java.io.Serializable;
 import java.util.*;
 
 import static io.github.neat.Config.*;
 import static io.github.neat.GAOperations.createOffspring;
 import static io.github.neat.GAOperations.tournamentSelect;
 
-public class Species {
+public class Species implements Serializable {
     private int id;
     private Genome representative;
     private ArrayList<Genome> members;
@@ -160,10 +161,13 @@ public class Species {
 
         //get top species rate genomes - elites from here or from global pop?
         int elites = (int) Math.min(Math.ceil (ELITE_SPECIES_RATE * portion), sorted.size());
+        if(members.size()<4){
+            elites = 0;
+        }
         System.out.println("Elite chosen "+elites);
         offspring.addAll(sorted.subList(0, elites));
 
-        for (int i = 0; i < portion; i++) {
+        for (int i = elites; i < portion; i++) {
             Genome parent1 = tournamentSelect(sorted);
             Genome parent2 = tournamentSelect(sorted);
             offspring.add(createOffspring(parent1, parent2));

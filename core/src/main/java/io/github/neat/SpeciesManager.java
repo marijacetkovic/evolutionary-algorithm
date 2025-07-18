@@ -118,6 +118,7 @@ public class SpeciesManager {
         for (Species s : speciesList) {
             all.addAll(s.getMembers());
         }
+        //return by raw performance not adjusted
         all.sort(Comparator.comparingDouble(Genome::getFitness).reversed());
         return all;
     }

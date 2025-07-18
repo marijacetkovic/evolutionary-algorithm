@@ -26,9 +26,18 @@ public class EvolutionManager {
         this.foodSpawnManager = new FoodSpawnManager(world);
         this.neatManager = new NEATManager(NUM_CREATURES);
         this.metricsManager = MetricsManager.getInstance();
-        initFirstGeneration();
+        boolean loadFromSavedState = true;
+
+        if (loadFromSavedState) {
+            initSavedGenomes("best_genomes.ser");
+        } else {
+            //starting simulation
+            initFirstGeneration();
+        }
+
         this.eliteGenomes = new ArrayList<>();
     }
+
 
     public static EvolutionManager getInstance() {
         if (instance == null) {
@@ -75,6 +84,8 @@ public class EvolutionManager {
         currentPhase = Phase.AUTO;
         //??
         world.spawnCreatures(eliteGenomes);
+        //<----------------------
+        saveBestGenomes();
         metricsManager.exportMetrics();
         System.out.println("Transitioned to autonomous phase.");
     }
@@ -87,12 +98,6 @@ public class EvolutionManager {
         foodSpawnManager.spawnFood(NUM_FOOD,currentGeneration);
     }
 
-    private void saveProgress() {
-        ArrayList<Genome> bestGenomes = neatManager.getBestIndividuals(5);
-        GenomeSerializer.saveGenomeList(bestGenomes, "best_genomes.ser");
-        INManager.saveToFile("inmanager_state.ser");
-    }
-
     public World getWorld() {
         return world;
     }
@@ -103,5 +108,32 @@ public class EvolutionManager {
 
     public NEATManager getNeatManager() {
         return neatManager;
+    }
+
+    private void initSavedGenomes(String s) {
+        ArrayList<Genome> loadedGenomes = GenomeSerializer.loadGenomeList(s);
+
+        if (loadedGenomes.isEmpty()) {
+            System.out.println("No genomes found to load.");
+            initFirstGeneration();
+            return;
+        }
+        ArrayList<Genome> initialPopulation = neatManager.createFromSaved(loadedGenomes, NUM_CREATURES);
+
+        System.out.println("Species number"+neatManager.getSpeciesManager().getSpeciesList().size());
+
+        world.reset();
+        world.spawnCreatures(initialPopulation);
+        currentGeneration = 1;
+        foodSpawnManager.spawnFood(NUM_FOOD, currentGeneration);
+        neatManager.getSpeciesManager().getSpeciesStatistics();
+
+        System.out.println("Loaded " + loadedGenomes.size() + " genomes.");
+    }
+
+    private void saveBestGenomes() {
+        ArrayList<Genome> bestGenomes = neatManager.getBestIndividuals((int) (NUM_CREATURES * SAVE_RATE));
+        GenomeSerializer.saveGenomeList(bestGenomes, "best_genomes.ser");
+        INManager.saveToFile("inmanager_state.ser");
     }
 }

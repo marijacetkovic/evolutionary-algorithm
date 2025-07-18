@@ -12,7 +12,7 @@ public class GAOperations {
 
     //for now just discarding invalid child - can be replaced w repairs
     public static Genome createOffspring(Genome p1, Genome p2){
-        Genome child = crossover(p1,p2);;
+        Genome child = crossover(p1,p2);
         boolean childInvalid = false;
         try {
             mutate(child);
@@ -58,8 +58,16 @@ public class GAOperations {
             b = nodes.get(r.nextInt(nodes.size()));
             i++;
             if (i>max) return;
+
         //disallow self loops, alr existing and cycle forming edges
-        } while (a.equals(b) || g.areConnected(a, b) || formsCycle(g,a,b));
+        } while (
+            a.equals(b) ||
+                g.areConnected(a, b) ||
+                formsCycle(g, a, b) ||
+                (a.getNodeType() == NodeType.INPUT && b.getNodeType() == NodeType.INPUT) ||
+                (a.getNodeType() == NodeType.OUTPUT && b.getNodeType() == NodeType.INPUT) ||
+                (a.getNodeType() == NodeType.OUTPUT && b.getNodeType() == NodeType.OUTPUT)
+        );
 
         double weight = g.randomWeight();
         int IN = INManager.getInstance().getInnovationID(a,b);
@@ -79,7 +87,7 @@ public class GAOperations {
         visited.add(current);
         for (Edge e: g.getOutgoingEdges(current)) {
             Node next = e.getTargetNode();
-            if (!visited.contains(next) && dfs(g,e.getTargetNode(),target,visited)){
+            if (!visited.contains(next) && dfs(g,next,target,visited)){
                 return true;
             }
         }
@@ -256,7 +264,6 @@ public class GAOperations {
         allEdges.addAll(d);
         allEdges.addAll(e);
 
-        // Track nodes by ID to prevent duplicates
         HashMap<Integer, Node> idToNode = new HashMap<>();
 
         for (Edge edge : allEdges) {
@@ -296,8 +303,13 @@ public class GAOperations {
         ArrayList<Edge> childEdgeGenes = (ArrayList<Edge>) result[0];
         ArrayList<Node> childNodeGenes = (ArrayList<Node>) result[1];
         //create offspring
-        Genome child = new Genome(childNodeGenes, childEdgeGenes);
-
+        Genome child;
+        try {
+            child = new Genome(childNodeGenes, childEdgeGenes);
+        }
+        catch (RuntimeException ex){
+            child = null;
+        }
         return child;
     }
 

@@ -5,6 +5,7 @@ import io.github.evolutionary_algorithm.Creature;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 import static io.github.neat.Genome.createRandomGenome;
@@ -32,7 +33,6 @@ public class NEATManager {
 
     public ArrayList<Genome> evolveGeneration(ArrayList<AbstractCreature> currentCreatures) {
         ArrayList<Genome> currentGenomes = new ArrayList<>();
-        System.out.println("DEBUG: currentGenomes.size() fetched from World: " + currentCreatures.size());
 
         for (AbstractCreature creature : currentCreatures) {
             currentGenomes.add(creature.getGenome());
@@ -50,7 +50,6 @@ public class NEATManager {
         return ensurePopulationSize(nextGen);
     }
 
-
     private ArrayList<Genome> getEliteGenomes() {
         return new ArrayList<>(eliteGenomes);
     }
@@ -66,7 +65,6 @@ public class NEATManager {
     private ArrayList<Genome> ensurePopulationSize(ArrayList<Genome> population) {
         while (population.size() < numCreatures) {
             population.add(Genome.createRandomGenome());
-            System.out.println("imhere");
         }
         return population.stream()
             .sorted(Comparator.comparing(Genome::getFitness).reversed())
@@ -82,5 +80,20 @@ public class NEATManager {
         return speciesManager.getGenomes().stream()
             .limit(k)
             .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    public ArrayList<Genome> createFromSaved(ArrayList<Genome> genomes, int numCreatures) {
+        Random rand = new Random();
+        ArrayList<Genome> initialPop = new ArrayList<>(genomes);
+
+        for (int i = 0; i < numCreatures; i++) {
+            Genome base = genomes.get(rand.nextInt(genomes.size()));
+            Genome mutatedBase = new Genome(base);
+            GAOperations.mutate(mutatedBase);
+            initialPop.add(mutatedBase);
+        }
+
+        speciesManager.update(initialPop);
+        return initialPop;
     }
 }

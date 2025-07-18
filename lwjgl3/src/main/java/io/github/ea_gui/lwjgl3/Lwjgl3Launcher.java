@@ -3,12 +3,19 @@ package io.github.ea_gui.lwjgl3;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import io.github.ea_gui.Main;
+import io.github.evolutionary_algorithm.EvolutionRunner;
 
 /** Launches the desktop (LWJGL3) application. */
 public class Lwjgl3Launcher {
     public static void main(String[] args) {
         if (StartupHelper.startNewJvmIfRequired()) return;
-        createApplication();
+        boolean gui = Boolean.getBoolean("gui");
+        if (gui) {
+            createApplication();
+        }
+        else{
+            EvolutionRunner.main(args);
+        }
     }
 
     private static Lwjgl3Application createApplication() {

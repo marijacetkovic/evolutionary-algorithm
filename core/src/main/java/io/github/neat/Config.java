@@ -2,7 +2,7 @@ package io.github.neat;
 
 public class Config {
     public static final double WEIGHT_MUTATION_RATE = 0.8;
-    public static final double STRUCTURAL_MUTATION_RATE = 0.7;
+    public static final double STRUCTURAL_MUTATION_RATE = 0.4;
     public static double MAX_INITIAL_WEIGHT = 2;
     public static double MIN_INITIAL_WEIGHT = -2;
     public static double ADD_NODE_MUTATION_PROB = 0.7;

@@ -14,19 +14,14 @@ public class INManager implements Serializable {
     private int lastInnovationId = 0;
     private int lastNodeId = Config.startNodeId;
 
-
-
     private INManager() {
     }
 
     public static INManager getInstance() {
         if (instance == null) {
-            //try {
-              //  loadFromFile("inmanager_state.ser");
-               // System.out.println("IMLOADED FROM FILEEE");
-            //} catch (Exception e) {
-            instance = new INManager();
-            //}
+            try {
+                loadFromFile("inmanager_state.ser");
+            } catch (Exception e) {instance = new INManager();}
         }
         return instance;
     }
@@ -36,6 +31,9 @@ public class INManager implements Serializable {
         if (sourceNode == null || targetNode == null) {
             throw new IllegalArgumentException("Source and target nodes must not be null.");
         }
+
+        //printEdgeInnovations();
+        //printNodeInnovations();
 
         String edgeKey = sourceNode.getId() + "-" + targetNode.getId();
 
@@ -76,6 +74,7 @@ public class INManager implements Serializable {
                 "Current lastInnovationId: " + instance.lastInnovationId +
                     " | lastNodeId: " + instance.lastNodeId
             );
+            System.out.println("INManager successfully loaded from file.");
         } catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException(e);
         }

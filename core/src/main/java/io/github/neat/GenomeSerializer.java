@@ -38,7 +38,7 @@ public class GenomeSerializer {
             out.writeObject(genomes);
             System.out.println("Saved " + genomes.size() + " genomes to " + filename);
         } catch (IOException e) {
-            System.err.println("List save error: " + e.getMessage());
+            System.out.println("List save error: " + e.getMessage());
         }
     }
 
@@ -46,10 +46,14 @@ public class GenomeSerializer {
         try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(filename))) {
             ArrayList<Genome> loaded = (ArrayList<Genome>) in.readObject();
             System.out.println("Successfully loaded list");
-            loaded.forEach(g -> g.setFitness(0)); // Reset fitness for all
+            loaded.forEach(g -> {
+                g.setFitness(0);
+                g.setTopologicallySortedNodes();
+            }
+            );
             return loaded;
-        } catch (IOException | ClassNotFoundException e) {
-            System.err.println("List load error: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("List load error: " + e.getMessage());
             return new ArrayList<>();
         }
     }

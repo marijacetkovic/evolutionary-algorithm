@@ -27,9 +27,37 @@ public class Genome implements Serializable {
         hiddenNodes = new ArrayList<>();
         outputNodes = new ArrayList<>();
         this.fitness = 0;
-        //updateStructure();
+        this.adjustedFitness = 0;
+        updateStructure();
     }
+    public Genome(Genome other) {
+        Map<Integer, Node> newNodeMap = new HashMap<>();
+        this.nodeGenes = new ArrayList<>();
+        for (Node oldNode : other.nodeGenes) {
+            Node newNode = new Node(oldNode);
+            this.nodeGenes.add(newNode);
+            newNodeMap.put(oldNode.getId(), newNode);
+        }
 
+        this.edgeGenes = new ArrayList<>();
+        for (Edge oldEdge : other.edgeGenes) {
+            Node src = newNodeMap.get(oldEdge.getSourceNode().getId());
+            Node target = newNodeMap.get(oldEdge.getTargetNode().getId());
+
+            Edge newEdge = new Edge(oldEdge, src, target);
+            this.edgeGenes.add(newEdge);
+            this.edgeGenes.add(newEdge);
+        }
+
+        this.fitness = 0;
+        this.adjustedFitness = 0;
+        this.inputNodes = new ArrayList<>();
+        this.hiddenNodes = new ArrayList<>();
+        this.outputNodes = new ArrayList<>();
+        this.topologicallySortedNodes = null;
+
+        updateStructure();
+    }
     public Genome() {
         nodeGenes = new ArrayList<>();
         edgeGenes = new ArrayList<>();
@@ -184,8 +212,7 @@ public class Genome implements Serializable {
     public boolean areConnected(Node a, Node b) {
         //should add adjacency list for this check
         for (Edge e:edgeGenes) {
-            if ((e.getSourceNode().equals(a) && e.getTargetNode().equals(b))
-                || (e.getSourceNode().equals(b) && e.getTargetNode().equals(a))){
+            if ((e.getSourceNode().equals(a) && e.getTargetNode().equals(b))){
                 return true;
             }
         }
@@ -370,5 +397,8 @@ public class Genome implements Serializable {
 
     public double getAdjustedFitness() {
         return this.adjustedFitness;
+    }
+    public void setTopologicallySortedNodes(){
+        this.topologicallySortedNodes = new ArrayList<>();
     }
 }

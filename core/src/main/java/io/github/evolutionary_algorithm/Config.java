@@ -1,17 +1,17 @@
 package io.github.evolutionary_algorithm;
 
 public class Config {
-    public static final int WORLD_SIZE = 100;
+    public static final int WORLD_SIZE = 300;
     public static final int CREATURE_LOCATION_BOUND = WORLD_SIZE;
 
     public static final int NUM_CREATURES = 500;
-    public static final double ELITES = 0.03;
-    public static final int MAX_GEN = 70;
+    public static final double SAVE_RATE = 0.1;
+    public static final int MAX_GEN = 30;
     public static final int EVOLUTION_GEN = MAX_GEN+1;
 
     public static final int MAX_CREATURES = 550;
     public static final int NUM_FOOD = 300;
-    public static final int MIN_FOOD_LVL = 2;
+    public static final int MIN_FOOD_LVL = NUM_FOOD;
     public static final int FOOD_LOCATION_BOUND = 4;
     public static final int FOOD_QUADRANT_BOUND = 2;
     public static final int FOOD_PHASE_END1 = 10 ;
