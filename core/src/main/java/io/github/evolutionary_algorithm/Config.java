@@ -27,6 +27,14 @@ public class Config {
     public static final double breedProbability = 1;
 
     public static final float TIME = 0.07f;
+    public static final int FOOD_CODE_PLANT = 0;
+    public static final int FOOD_CODE_MEAT = 1;
+    public static final double PLANT_FOOD_NUTRITION = 10;
+    public static final double MEAT_FOOD_NUTRITION = 20;
+    public static final double PLANT_SPAWN_PROBABILITY = 0.5;
+    public static final double HERBIVORE_PROB = 1;
+    public static final double CARNIVORE_PROB = 0;
+
     public static int INITIAL_HEALTH = 300;
     public static int MAX_HEALTH = 600;
 

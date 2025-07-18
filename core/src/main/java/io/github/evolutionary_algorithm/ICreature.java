@@ -15,6 +15,6 @@ public interface ICreature {
     void updatePosition(int i, int j);
     void takeAction(EventManager eventManager, World world);
     boolean checkHealth(World world);
-    void consume();
+    void consume(Food f);
     void evaluateAction(World w);
 }

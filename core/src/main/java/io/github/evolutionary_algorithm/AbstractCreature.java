@@ -32,6 +32,13 @@ public abstract class AbstractCreature implements ICreature {
     protected double prevFoodDistance;
     protected int wallPenaltyCnt;
     protected int timeSinceEaten;
+    public enum DietType {
+        HERBIVORE,
+        CARNIVORE,
+        OMNIVORE
+    }
+
+    protected DietType dietType;
 
     public AbstractCreature(int id, int i, int j, int foodType, Genome genome){
         this.id = id;
@@ -190,8 +197,6 @@ public abstract class AbstractCreature implements ICreature {
     abstract void checkEatingAction(EventManager eventManager, World world);
     abstract void checkBreedingAction(EventManager eventManager, World world);
     abstract boolean mateWithMe();
-    @Override
-    public abstract void consume();
-    @Override
+    public abstract void consume(Food f);
     public abstract void evaluateAction(World w);
 }

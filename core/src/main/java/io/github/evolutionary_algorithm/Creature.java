@@ -1,25 +1,25 @@
 package io.github.evolutionary_algorithm;
 
 import io.github.neat.Genome;
-
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-
 import static io.github.evolutionary_algorithm.Config.*;
-import static io.github.evolutionary_algorithm.Config.Phase.AUTO;
 import static io.github.neat.Config.numInputs;
 
-public class Creature extends AbstractCreature{
+public class Creature extends AbstractCreature {
 
     public Creature(int id, int i, int j, int foodType, Genome genome){
         super(id,i,j,foodType,genome);
+        this.dietType = assignDiet();
     }
 
     double[] getEnvironmentInput(World world) {
         double[] inputs = new double[numInputs];
         int idx = 0;
         inputs[idx++] = world.world[i][j].hasFood() ? 1.0 : -1.0;
+
+        //here need to add two new inputs for food
+        //inputs for other creature health
 
         //neighbors excluding current cell
         int[][] directions = {{-1,-1},{-1,0},{-1,1},{0,-1},{0,1},{1,-1},{1,0},{1,1}};
@@ -62,19 +62,30 @@ public class Creature extends AbstractCreature{
         return inputs;
     }
 
-//    private boolean shouldEat() {
-//        return r.nextDouble() < Config.eatProbability;
-//    }
-//    private boolean shouldBreed() {
-//        return r.nextDouble() < Config.breedProbability;
-//    }
+    void checkEatingAction(EventManager eventManager, World world){
+        List<Food> food = world.world[i][j].getFoodItems();
 
+        if (food.size() > 0) {
+            for (Food f : food) {
+                int foodCode = f.getCode();
 
-     void checkEatingAction(EventManager eventManager, World world){
-        if(world.world[i][j].getFoodItems().size()>0){
-            //process eating food immediately
-            eventManager.publish(new EatingEvent(this, i,j, world),true);
-            hasEaten = true;
+                boolean canEat = false;
+                if (foodCode == Config.FOOD_CODE_PLANT) {
+                    if (this.dietType == DietType.HERBIVORE || this.dietType == DietType.OMNIVORE) {
+                        canEat = true;
+                    }
+                } else if (foodCode == Config.FOOD_CODE_MEAT) {
+                    if (this.dietType == DietType.CARNIVORE || this.dietType == DietType.OMNIVORE) {
+                        canEat = true;
+                    }
+                }
+
+                if (canEat) {
+                    eventManager.publish(new EatingEvent(this, i, j, world, f), true);
+                    hasEaten = true;
+                    return;
+                }
+            }
         }
     }
     void checkBreedingAction(EventManager eventManager, World world) {
@@ -101,11 +112,12 @@ public class Creature extends AbstractCreature{
         return false;
     }
 
-    //edit for diff food
-    public void consume(){
-        health+= FOOD_REWARD;
+    //<--- CHECK
+    public void consume(Food f){
+        health += f.getNutrition();
     }
 
+    //need to change fitness function
     public void evaluateAction(World w) {
         double[] foodVector = getClosestFoodVector(w);
         double currentDistance = Math.sqrt(foodVector[0] * foodVector[0] + foodVector[1] * foodVector[1]);
@@ -137,10 +149,18 @@ public class Creature extends AbstractCreature{
         //transfer fitness to genome
         this.genome.setFitness(fitness);
     }
-
-
     private double getPreviousFoodDistance() {
         return prevFoodDistance;
+    }
+    private DietType assignDiet() {
+        double r = new Random().nextDouble();
+        if (r < Config.HERBIVORE_PROB) {
+            return DietType.HERBIVORE;
+        } else if (r < Config.HERBIVORE_PROB + Config.CARNIVORE_PROB) {
+            return DietType.CARNIVORE;
+        } else {
+            return DietType.OMNIVORE;
+        }
     }
 
 }

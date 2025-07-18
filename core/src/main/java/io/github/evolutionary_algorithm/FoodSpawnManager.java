@@ -63,11 +63,20 @@ public class FoodSpawnManager {
                     j = r.nextInt(size);
                     break;
             }
-            // } while (world[i][j].getFoodItems().contains(-2));
-
-            world.addFood(i,j);
+            Food f = createRandomFood(i,j);
+            world.addFood(i,j,f);
         }
     }
 
+    private Food createRandomFood(int i, int j) {
+        double prob = r.nextDouble();
+
+        //control spawn by prob
+        if (prob < Config.PLANT_SPAWN_PROBABILITY) {
+            return new Food(i, j, Config.PLANT_FOOD_NUTRITION, Config.FOOD_CODE_PLANT);
+        } else {
+            return new Food(i, j, Config.MEAT_FOOD_NUTRITION, Config.FOOD_CODE_MEAT);
+        }
+    }
 
 }

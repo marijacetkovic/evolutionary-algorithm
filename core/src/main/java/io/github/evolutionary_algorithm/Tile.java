@@ -6,11 +6,11 @@ import java.util.stream.Collectors;
 
 public class Tile {
     private List<Integer> creatures;
-    private List<Integer> foodItems;
+    private List<Food> foodList;
 
     public Tile() {
         this.creatures = new ArrayList<>();
-        this.foodItems = new ArrayList<>();
+        this.foodList = new ArrayList<>();
     }
 
     public void addCreature(int creatureId) {
@@ -21,24 +21,24 @@ public class Tile {
         creatures.remove(Integer.valueOf(creatureId));
     }
 
-    public void addFood(int foodCode) {
-        foodItems.add(foodCode);
+    public void addFood(Food f) {
+        foodList.add(f);
     }
 
-    public void removeFood(int foodCode) {
-        foodItems.remove(Integer.valueOf(foodCode));
+    public void removeFood(Food f) {
+        foodList.remove(f);
     }
 
     public List<Integer> getCreatures() {
         return creatures;
     }
 
-    public List<Integer> getFoodItems() {
-        return foodItems;
+    public List<Food> getFoodItems() {
+        return foodList;
     }
 
     public boolean hasFood() {
-        return foodItems.size() > 0;
+        return foodList.size() > 0;
     }
 
     public boolean hasCreature(int id) {

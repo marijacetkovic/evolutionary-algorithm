@@ -177,18 +177,13 @@ public class World {
     public void remove(int i, int j, int creatureId) {
         world[i][j].removeCreature(creatureId);
     }
-    public void removeFood(int i, int j, int foodCode) {
-        world[i][j].removeFood(foodCode);
+    public void removeFood(Food f) {
+        this.food.remove(f);
+        world[f.getI()][f.getJ()].removeFood(f);
     }
 
     public boolean isWithinBounds(int row, int col) {
         return row >= 0 && row < size && col >= 0 && col < size;
-    }
-    public void cutFood(int i, int j){
-        for (Food f:food) if (f.getI()==i && f.getJ()==j) {
-            boolean flag = food.remove(f);
-            return;
-        }
     }
 
 //    public List<Creature> checkEligibleMate(Creature c){
@@ -237,9 +232,8 @@ public class World {
         return population.size();
     }
 
-    public void addFood(int i, int j) {
-        int foodCode = getRandomFoodCode();
-        food.add(new Food(i, j, 100, foodCode));
-        world[i][j].addFood(foodCode);
+    public void addFood(int i, int j, Food f) {
+        food.add(f);
+        world[i][j].addFood(f);
     }
 }

@@ -12,13 +12,16 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import io.github.evolutionary_algorithm.*;
 
 import static io.github.ea_gui.Config.*;
+import static io.github.evolutionary_algorithm.Config.FOOD_CODE_MEAT;
+import static io.github.evolutionary_algorithm.Config.FOOD_CODE_PLANT;
 
 public class WorldRenderer {
     private final EvolutionManager evolutionManager;
     private World world;
     private final Texture tileTexture;
     private final Texture creatureTexture;
-    private final Texture foodTexture;
+    private final Texture foodTexture0;
+    private final Texture foodTexture1;
 
     private Main game;
     float tileSize;
@@ -38,7 +41,8 @@ public class WorldRenderer {
         this.evolutionManager = evolutionManager;
         tileTexture = new Texture(Gdx.files.internal(TILE_TEXTURE));
         creatureTexture = new Texture(Gdx.files.internal(CREATURE_TEXTURE));
-        foodTexture = new Texture(Gdx.files.internal(FOOD_TEXTURE));
+        foodTexture0 = new Texture(Gdx.files.internal(FOOD_TEXTURE_0));
+        foodTexture1 = new Texture(Gdx.files.internal(FOOD_TEXTURE_1));
         String mapFilePath = getMapFilePath(this.n);
         map = new TmxMapLoader().load(mapFilePath);
         renderer = new OrthogonalTiledMapRenderer(map, 1f);
@@ -126,34 +130,20 @@ public class WorldRenderer {
                     }
                 }
 
-                for (Integer foodCode : tile.getFoodItems()) {
-                   // Food food = tile.findFoodByCode(foodCode);
-                   // if (food != null) {
+                for (Food f : tile.getFoodItems()) {
+                    Texture foodTexture = null;
+
+                    if (f.getCode() == FOOD_CODE_PLANT) {
+                        foodTexture = foodTexture0;
+                    } else if (f.getCode() == FOOD_CODE_MEAT) {
+                        foodTexture = foodTexture1;
+                    }
+
+                    if (foodTexture != null) {
                         game.batch.draw(foodTexture, x, y, 0.75f * tileSize, 0.75f * tileSize);
-                    //}
+                    }
                 }
             }
-        }
-    }
-
-
-    private void renderCreatures() {
-        for (AbstractCreature c : world.getPopulation()) {
-            float x = calcX(c.getJ());
-            float y = calcY(n - 1 - c.getI());
-            game.batch.draw(creatureTexture, x, y, tileSize, tileSize);
-            game.font.setColor(Color.GREEN);
-            game.font.draw(game.batch, c.getHealth() + "", x + tileSize/5, y + tileSize /5);
-            game.font.setColor(Color.BLACK);
-            game.font.draw(game.batch, c.getId() + "", x + tileSize / 2, y + tileSize / 2);
-        }
-    }
-
-    private void renderFood(){
-        for (Food f : world.getFood()) {
-            float x = calcX(f.getJ());
-            float y = calcY(n - 1 - f.getI());
-            game.batch.draw(foodTexture, x, y, 0.75f*tileSize, 0.75f*tileSize);
         }
     }
 
@@ -173,7 +163,8 @@ public class WorldRenderer {
     public void dispose() {
         tileTexture.dispose();
         creatureTexture.dispose();
-        foodTexture.dispose();
+        foodTexture0.dispose();
+        foodTexture1.dispose();
         map.dispose();
     }
 }
