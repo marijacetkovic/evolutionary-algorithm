@@ -28,7 +28,7 @@ public class FoodSpawnManager {
     }
 
     public void checkFoodQuantity(int gen) {
-        if (world.getFood().size() < NUM_FOOD / MIN_FOOD_LVL) {
+        if (world.getFood().size() < NUM_FOOD * MIN_FOOD_LVL) {
             int f = NUM_FOOD - world.getFood().size();
             spawnFood(f, gen);
             System.out.println("Food quantity increased.");

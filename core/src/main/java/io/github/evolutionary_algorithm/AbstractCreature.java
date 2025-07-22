@@ -2,9 +2,12 @@ package io.github.evolutionary_algorithm;
 
 import io.github.neat.Genome;
 
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Random;
 
+import static io.github.evolutionary_algorithm.AbstractCreature.DietType.*;
 import static io.github.evolutionary_algorithm.Config.*;
 import static io.github.evolutionary_algorithm.Config.Phase.AUTO;
 import static io.github.neat.Config.numInputs;
@@ -32,6 +35,7 @@ public abstract class AbstractCreature implements ICreature {
     protected double prevFoodDistance;
     protected int wallPenaltyCnt;
     protected int timeSinceEaten;
+
     public enum DietType {
         HERBIVORE,
         CARNIVORE,
@@ -86,10 +90,8 @@ public abstract class AbstractCreature implements ICreature {
     }
 
     @Override
-    public double getFitness() {
-        return fitness;
-    }
-
+    public double getFitness() { return fitness; }
+    public DietType getDietType() { return dietType; }
 
     public List<AbstractCreature> getPotentialMates() {
         return potentialMates;
@@ -142,24 +144,41 @@ public abstract class AbstractCreature implements ICreature {
         performInWorld(eventManager,world,decision);
     }
 
-    //dk if euclidean or manhattan applies better here?
+
+    //finds closest edible food source
     protected double[] getClosestFoodVector(World world) {
         double[] vector = new double[]{0.0, 0.0};
-        double closestDistanceSq = Double.POSITIVE_INFINITY;
+        boolean[][] visited = new boolean[world.getSize()][world.getSize()];
+        Queue<int[]> queue = new LinkedList<>();
+        queue.add(new int[]{i, j, 0});
+        visited[i][j] = true;
 
-        for (int x = 0; x < world.getSize(); x++) {
-            for (int y = 0; y < world.getSize(); y++) {
-                Tile tile = world.world[x][y];
-                if (!tile.hasFood()) continue;
+        while (!queue.isEmpty()) {
+            int[] current = queue.poll();
+            int x = current[0], y = current[1], depth = current[2];
 
-                double dx = x - this.i;
-                double dy = y - this.j;
-                double distanceSq = dx * dx + dy * dy;
-                //update if better found
-                if (distanceSq < closestDistanceSq) {
-                    closestDistanceSq = distanceSq;
-                    vector[0] = dx;
-                    vector[1] = dy;
+            //control for larger worlds
+            if (depth > VISION_RANGE)
+                break;
+            Tile tile = world.world[x][y];
+
+            //check current tile and return vec
+            for (Food f : tile.getFoodItems()) {
+                if (canEat(f)) {
+                    vector[0] = x - i;
+                    vector[1] = y - j;
+                    return vector;
+                }
+            }
+            //bfs on neighbors
+            int[][] directions = {{-1,0},{1,0},{0,-1},{0,1}};
+            for (int[] d : directions) {
+                int next_x = x + d[0], next_y = y + d[1];
+                if (world.isWithinBounds(next_x, next_y)
+                    && !visited[next_x][next_y]) {
+                    visited[next_x][next_y] = true;
+                    //enqueue neihgbors
+                    queue.add(new int[]{next_x, next_y, depth + 1});
                 }
             }
         }
@@ -192,7 +211,29 @@ public abstract class AbstractCreature implements ICreature {
             checkBreedingAction(eventManager, world); // This will be abstract
         }
     }
-
+    protected double[] getDietInput() {
+        double[] input = new double[2];
+        switch (this.dietType) {
+            case HERBIVORE:
+                input[0] = 1.0; input[1] = 0.0;
+                break;
+            case CARNIVORE:
+                input[0] = 0.0; input[1] = 1.0;
+                break;
+            case OMNIVORE:
+                input[0] = 1.0; input[1] = 1.0;
+                break;
+        }
+        return input;
+    }
+    public boolean canEat(Food food) {
+        if (food.getCode() == FOOD_CODE_PLANT) {
+            return this.dietType == HERBIVORE || this.dietType == OMNIVORE;
+        } else if (food.getCode() == FOOD_CODE_MEAT) {
+            return this.dietType == CARNIVORE || this.dietType == OMNIVORE;
+        }
+        return false;
+    }
     abstract double[] getEnvironmentInput(World world);
     abstract void checkEatingAction(EventManager eventManager, World world);
     abstract void checkBreedingAction(EventManager eventManager, World world);

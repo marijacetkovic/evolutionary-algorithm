@@ -3,6 +3,8 @@ package io.github.evolutionary_algorithm;
 import io.github.neat.Genome;
 import java.util.List;
 import java.util.Random;
+
+import static io.github.evolutionary_algorithm.AbstractCreature.DietType.*;
 import static io.github.evolutionary_algorithm.Config.*;
 import static io.github.neat.Config.numInputs;
 
@@ -16,13 +18,17 @@ public class Creature extends AbstractCreature {
     double[] getEnvironmentInput(World world) {
         double[] inputs = new double[numInputs];
         int idx = 0;
-        inputs[idx++] = world.world[i][j].hasFood() ? 1.0 : -1.0;
+        double[] dietInputs = getDietInput();
 
-        //here need to add two new inputs for food
-        //inputs for other creature health
+        inputs[idx++] = dietInputs[0];
+        inputs[idx++] = dietInputs[1];
 
-        //neighbors excluding current cell
-        int[][] directions = {{-1,-1},{-1,0},{-1,1},{0,-1},{0,1},{1,-1},{1,0},{1,1}};
+
+        //neighbors including current cell
+        int[][] directions =
+            {{-1,-1},{-1,0},{-1,1},
+            {0,-1},{0,0},{0,1},
+            {1,-1},{1,0},{1,1}};
 
         for (int[] dir : directions) {
             int x = i + dir[0];
@@ -30,21 +36,23 @@ public class Creature extends AbstractCreature {
 
             //maybe can remove this
             // wall detection
-            inputs[idx++] = world.isWall(x, y) ? 1 : -1;
+            inputs[idx++] = world.isWall(x, y) ? 1 : 0;
 
             // food presence
-            inputs[idx++] = (world.isWithinBounds(x, y) && world.world[x][y].hasFood()) ? 1 : 0;
+            inputs[idx++] = (world.isWithinBounds(x, y) && world.world[x][y].hasPlantFood()) ? 1 : 0;
+            inputs[idx++] = (world.isWithinBounds(x, y) && world.world[x][y].hasMeatFood()) ? 1 : 0;
 
-            // creature presence
+            // creature presence (excl self)
             inputs[idx++] = (world.isWithinBounds(x, y) && world.world[x][y].hasCreature(id)) ? 1 : 0;
         }
 
-        // normalized health
-        inputs[idx++] = health / (double)INITIAL_HEALTH;
+        // normalized hunger
+        inputs[idx++] = 1 - health / (double)INITIAL_HEALTH;
 
         // vector pointing to closest food source to guide agent
         double[] foodVec = getClosestFoodVector(world);
-        double dist = Math.sqrt(foodVec[0]*foodVec[0] + foodVec[1]*foodVec[1]);
+        //Manhattan
+        double dist = Math.abs(foodVec[0]) + Math.abs(foodVec[1]);
 
         //continuous vector
         if (dist > 0) {
@@ -56,7 +64,7 @@ public class Creature extends AbstractCreature {
             inputs[idx++] = 0.0;
         }
 
-        // normalized food dist
+        // normalized food dist - <--- Maybe not needed
         inputs[idx++] = Math.min(1, dist / (world.getSize()/2.0));
 
         return inputs;
@@ -67,20 +75,7 @@ public class Creature extends AbstractCreature {
 
         if (food.size() > 0) {
             for (Food f : food) {
-                int foodCode = f.getCode();
-
-                boolean canEat = false;
-                if (foodCode == Config.FOOD_CODE_PLANT) {
-                    if (this.dietType == DietType.HERBIVORE || this.dietType == DietType.OMNIVORE) {
-                        canEat = true;
-                    }
-                } else if (foodCode == Config.FOOD_CODE_MEAT) {
-                    if (this.dietType == DietType.CARNIVORE || this.dietType == DietType.OMNIVORE) {
-                        canEat = true;
-                    }
-                }
-
-                if (canEat) {
+                if (canEat(f)) {
                     eventManager.publish(new EatingEvent(this, i, j, world, f), true);
                     hasEaten = true;
                     return;
@@ -114,37 +109,31 @@ public class Creature extends AbstractCreature {
 
     //<--- CHECK
     public void consume(Food f){
-        health += f.getNutrition();
+        if (health<MAX_HEALTH){
+            health += f.getNutrition();
+        }
     }
 
     //need to change fitness function
     public void evaluateAction(World w) {
-        double[] foodVector = getClosestFoodVector(w);
-        double currentDistance = Math.sqrt(foodVector[0] * foodVector[0] + foodVector[1] * foodVector[1]);
-
-        if (currentDistance < prevFoodDistance) {
-            fitness += 0.5;
-        } else {
-            fitness -= 0;
-        }
-        prevFoodDistance = currentDistance;
-
-        if (hasEaten) {
-            fitness += 50.0;
-            timeSinceEaten = 0;
-            hasEaten = false;
-        } else {
-            timeSinceEaten++;
-        }
-
-        /*boolean hitWall = w.isWall(i,j);
-        if (hitWall) {
-            fitness -= 100;
-        }
-
-        if (timeSinceEaten > 10) {
-            fitness -= 10;
-        }*/
+        fitness++;
+//        double[] foodVector = getClosestFoodVector(w);
+//        double currentDistance = Math.sqrt(foodVector[0] * foodVector[0] + foodVector[1] * foodVector[1]);
+//
+//        if (currentDistance < prevFoodDistance) {
+//            fitness += 0.5;
+//        } else {
+//            fitness -= 0;
+//        }
+//        prevFoodDistance = currentDistance;
+//
+//        if (hasEaten) {
+//            fitness += 50.0;
+//            timeSinceEaten = 0;
+//            hasEaten = false;
+//        } else {
+//            timeSinceEaten++;
+//        }
 
         //transfer fitness to genome
         this.genome.setFitness(fitness);
@@ -154,12 +143,12 @@ public class Creature extends AbstractCreature {
     }
     private DietType assignDiet() {
         double r = new Random().nextDouble();
-        if (r < Config.HERBIVORE_PROB) {
-            return DietType.HERBIVORE;
-        } else if (r < Config.HERBIVORE_PROB + Config.CARNIVORE_PROB) {
-            return DietType.CARNIVORE;
+        if (r < HERBIVORE_PROB) {
+            return HERBIVORE;
+        } else if (r < HERBIVORE_PROB + CARNIVORE_PROB) {
+            return CARNIVORE;
         } else {
-            return DietType.OMNIVORE;
+            return OMNIVORE;
         }
     }
 

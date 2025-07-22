@@ -18,6 +18,7 @@ public class EatingEvent extends Event{
 
     @Override
     public void process() {
+        //System.out.println("Creature type "+c.getDietType()+" consumed food type "+f.getCode());
         w.removeFood(f);
         c.consume(f);
     }

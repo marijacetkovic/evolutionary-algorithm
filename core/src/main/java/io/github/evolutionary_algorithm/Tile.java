@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static io.github.evolutionary_algorithm.Config.FOOD_CODE_MEAT;
+import static io.github.evolutionary_algorithm.Config.FOOD_CODE_PLANT;
+
 public class Tile {
     private List<Integer> creatures;
     private List<Food> foodList;
@@ -48,5 +51,10 @@ public class Tile {
     public List<Integer> getOtherCreatures(int id){
         return creatures.stream().filter(c->c!=id).collect(Collectors.toList());
     }
-
+    public boolean hasPlantFood() {
+        return foodList.stream().anyMatch(food -> food.getCode() == FOOD_CODE_PLANT);
+    }
+    public boolean hasMeatFood() {
+        return foodList.stream().anyMatch(food -> food.getCode() == FOOD_CODE_MEAT);
+    }
 }

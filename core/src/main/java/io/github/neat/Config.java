@@ -30,7 +30,7 @@ public class Config {
     public static boolean structuralMutation = true;
     public static boolean test = false;
 
-    public static int numInputs = 29;
+    public static int numInputs = 42;
     public static int numOutputs = 6;
     public static int startNodeId = numInputs + numOutputs;
     public static final int TOURNAMENT_SIZE = 5;

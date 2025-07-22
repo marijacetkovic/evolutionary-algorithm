@@ -123,10 +123,10 @@ public class WorldRenderer {
                     AbstractCreature c = world.findCreatureById(creatureId);
                     if (c != null) {
                         game.batch.draw(creatureTexture, x, y, tileSize, tileSize);
-                        game.font.setColor(Color.GREEN);
-                        game.font.draw(game.batch, c.getHealth() + "", x + tileSize / 5, y + tileSize / 5);
-                        game.font.setColor(Color.BLACK);
-                        game.font.draw(game.batch, c.getId() + "", x + tileSize / 2, y + tileSize / 2);
+                        //game.font.setColor(Color.GREEN);
+                        //game.font.draw(game.batch, c.getHealth() + "", x + tileSize / 5, y + tileSize / 5);
+                        //game.font.setColor(Color.BLACK);
+                        //game.font.draw(game.batch, c.getId() + "", x + tileSize / 2, y + tileSize / 2);
                     }
                 }
 
