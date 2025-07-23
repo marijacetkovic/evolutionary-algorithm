@@ -60,8 +60,8 @@ public class INManager implements Serializable {
                 "Current lastInnovationId: " + instance.lastInnovationId +
                     " | lastNodeId: " + instance.lastNodeId
             );
-            printEdgeInnovations();
-            printNodeInnovations();
+            //printEdgeInnovations();
+            //printNodeInnovations();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

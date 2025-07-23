@@ -1,5 +1,7 @@
 package io.github.evolutionary_algorithm;
 
+import io.github.evolutionary_algorithm.events.DeathEvent;
+import io.github.evolutionary_algorithm.events.EventManager;
 import io.github.neat.Genome;
 
 import java.util.LinkedList;
@@ -10,7 +12,6 @@ import java.util.Random;
 import static io.github.evolutionary_algorithm.AbstractCreature.DietType.*;
 import static io.github.evolutionary_algorithm.Config.*;
 import static io.github.evolutionary_algorithm.Config.Phase.AUTO;
-import static io.github.neat.Config.numInputs;
 
 public abstract class AbstractCreature implements ICreature {
     protected int id;
@@ -27,7 +28,7 @@ public abstract class AbstractCreature implements ICreature {
     protected final int foodType;
     protected int health;
     protected Genome genome;
-    protected String[] actions = { "up", "left", "down", "right", "none", "eat"};
+    protected String[] actions = { "up", "left", "down", "right", "none", "eat", "attack"};
     protected int[][] actionOffset = { {-1,0}, {0,-1}, {1,0}, {0,1}, {0,0}};
     protected boolean hasEaten;
     protected double fitness;
@@ -123,29 +124,11 @@ public abstract class AbstractCreature implements ICreature {
     }
 
     @Override
-    public boolean checkHealth(World world) {
-        health-=HEALTH_PENALTY;
-        if (health < 0) {
-            //System.out.println("Creature " + id + " died.");
-            world.remove(i,j,id);
-            return true;
-        }
-        else return false;
-    }
+    public abstract void chooseAction(EventManager eventManager, World world);
+    public abstract void performAction(EventManager eventManager, World world);
+    public abstract void checkHealth(EventManager eventManager, World world);
 
-    @Override
-    public void takeAction(EventManager eventManager, World world) {
-        //inject genome here
-        double[] input = this.getEnvironmentInput(world);
-        //double[] input = getRndInput();
-        int decision = genome.calcPropagation(input);
-        //System.out.println("Individuals decision to move: "+actions[decision]);
-
-        performInWorld(eventManager,world,decision);
-    }
-
-
-    //finds closest edible food source
+        //finds closest edible food source
     protected double[] getClosestFoodVector(World world) {
         double[] vector = new double[]{0.0, 0.0};
         boolean[][] visited = new boolean[world.getSize()][world.getSize()];
@@ -198,9 +181,10 @@ public abstract class AbstractCreature implements ICreature {
 
     protected void performInWorld(EventManager eventManager, World world, int decision) {
         if (decision == ACTION_EAT){
-            checkEatingAction(eventManager, world); // This will be abstract
-        }
-        else{
+            checkEatingAction(eventManager, world);
+        } else if (decision == ACTION_ATTACK) {
+            //checkAttackAction(eventManager, world);
+        } else{
             int i = this.i+actionOffset[decision][0];
             int j = this.j+actionOffset[decision][1];
 
@@ -208,9 +192,10 @@ public abstract class AbstractCreature implements ICreature {
         }
         //add one more output node for this next
         if (currentPhase==AUTO && fitness>breedingThreshold){
-            checkBreedingAction(eventManager, world); // This will be abstract
+            checkBreedingAction(eventManager, world);
         }
     }
+
     protected double[] getDietInput() {
         double[] input = new double[2];
         switch (this.dietType) {
@@ -234,9 +219,19 @@ public abstract class AbstractCreature implements ICreature {
         }
         return false;
     }
+    public boolean isDead() {
+        return this.health == 0;
+    }
+
+    public void setHealth(int i) {
+        this.health = 0;
+    }
+
     abstract double[] getEnvironmentInput(World world);
     abstract void checkEatingAction(EventManager eventManager, World world);
     abstract void checkBreedingAction(EventManager eventManager, World world);
+    abstract void checkAttackAction(EventManager eventManager, World world, Creature target);
+
     abstract boolean mateWithMe();
     public abstract void consume(Food f);
     public abstract void evaluateAction(World w);

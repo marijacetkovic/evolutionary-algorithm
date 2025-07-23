@@ -1,8 +1,7 @@
 package io.github.evolutionary_algorithm;
 
+import io.github.evolutionary_algorithm.events.EventManager;
 import io.github.neat.Genome;
-
-import java.util.List;
 
 public interface ICreature {
     int getId();
@@ -13,8 +12,8 @@ public interface ICreature {
     Genome getGenome();
     double getFitness();
     void updatePosition(int i, int j);
-    void takeAction(EventManager eventManager, World world);
-    boolean checkHealth(World world);
+    void chooseAction(EventManager eventManager, World world);
+    boolean isDead();
     void consume(Food f);
     void evaluateAction(World w);
 }

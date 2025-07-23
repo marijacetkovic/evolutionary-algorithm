@@ -1,4 +1,6 @@
-package io.github.evolutionary_algorithm;
+package io.github.evolutionary_algorithm.events;
+
+import io.github.evolutionary_algorithm.World;
 
 import java.util.LinkedList;
 import java.util.Queue;

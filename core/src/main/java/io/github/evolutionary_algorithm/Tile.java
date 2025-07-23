@@ -4,16 +4,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static io.github.evolutionary_algorithm.AbstractCreature.DietType.CARNIVORE;
+import static io.github.evolutionary_algorithm.AbstractCreature.DietType.HERBIVORE;
 import static io.github.evolutionary_algorithm.Config.FOOD_CODE_MEAT;
 import static io.github.evolutionary_algorithm.Config.FOOD_CODE_PLANT;
 
 public class Tile {
+    private final World w;
     private List<Integer> creatures;
     private List<Food> foodList;
 
-    public Tile() {
+    public Tile(World w) {
         this.creatures = new ArrayList<>();
         this.foodList = new ArrayList<>();
+        this.w = w;
     }
 
     public void addCreature(int creatureId) {
@@ -50,6 +54,20 @@ public class Tile {
 
     public List<Integer> getOtherCreatures(int id){
         return creatures.stream().filter(c->c!=id).collect(Collectors.toList());
+    }
+    public boolean hasHerbivore(int id){
+        return creatures.stream().anyMatch(creatureId -> {
+            if (creatureId == id) return false;
+            AbstractCreature creature = w.findCreatureById(creatureId);
+            return creature.getDietType() == HERBIVORE;
+        });
+    }
+    public boolean hasCarnivore(int id){
+        return creatures.stream().anyMatch(creatureId -> {
+            if (creatureId == id) return false;
+            AbstractCreature creature = w.findCreatureById(creatureId);
+            return creature.getDietType() == CARNIVORE;
+        });
     }
     public boolean hasPlantFood() {
         return foodList.stream().anyMatch(food -> food.getCode() == FOOD_CODE_PLANT);

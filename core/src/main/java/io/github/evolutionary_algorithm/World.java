@@ -1,5 +1,6 @@
 package io.github.evolutionary_algorithm;
 
+import io.github.evolutionary_algorithm.events.EventManager;
 import io.github.neat.Genome;
 
 import java.util.*;
@@ -8,7 +9,8 @@ import static io.github.evolutionary_algorithm.Config.*;
 
 public class World {
     public Tile[][] world;
-    private ArrayList<AbstractCreature> population;
+    //private ArrayList<AbstractCreature> population;
+    private Map<Integer, AbstractCreature> populationMap;
     private ArrayList<Food> food;
     private int size;
     private Random r = new Random();
@@ -27,7 +29,7 @@ public class World {
     public World(int n) {
         this.size = n;
         this.world = new Tile[n][n];    // Tile[][] matrix
-        this.population = new ArrayList<>();
+        //this.population = new ArrayList<>();
         this.prevPopulation = new ArrayList<>();
         this.food = new ArrayList<>();
         this.eventManager = new EventManager(this);
@@ -39,6 +41,7 @@ public class World {
             new int[]{0, -1},
             new int[]{-1, 0}
         );
+        populationMap = new LinkedHashMap<>();
         reset();
         //printMatrix();
     }
@@ -47,8 +50,8 @@ public class World {
         return size;
     }
 
-    public ArrayList<AbstractCreature> getPopulation() {
-        return population;
+    public Map<Integer, AbstractCreature> getPopulation() {
+        return populationMap;
     }
     public ArrayList<AbstractCreature> getPrevPopulation() {
         return prevPopulation;
@@ -57,8 +60,9 @@ public class World {
     public void reset(){
         this.lastId = 0;
         initializeTiles();
-        this.population = new ArrayList<>();
+        //this.population = new ArrayList<>();
         this.prevPopulation = new ArrayList<>();
+        this.populationMap = new LinkedHashMap<>();
         //spawnCreatures();
         this.food = new ArrayList<>();
         //spawnFood(Config.NUM_FOOD);
@@ -68,7 +72,7 @@ public class World {
     private void initializeTiles() {
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
-                world[i][j] = new Tile();
+                world[i][j] = new Tile(this);
             }
         }
     }
@@ -96,7 +100,8 @@ public class World {
         j = r.nextInt(CREATURE_LOCATION_BOUND);
         Creature c = new Creature(lastId, i, j, getRandomFoodCode(), g);
         world[i][j].addCreature(lastId);
-        population.add(c);
+        //population.add(c);
+        populationMap.put(c.getId(), c);
         lastId++;
         return c;
     }
@@ -108,7 +113,8 @@ public class World {
 
         Creature c = new Creature(lastId, i, j, getRandomFoodCode(),g);
         world[i][j].addCreature(lastId);
-        population.add(c);
+        //population.add(c);
+        populationMap.put(c.getId(), c);
         lastId++;
         return c;
     }
@@ -121,13 +127,16 @@ public class World {
     }
 
     public boolean behave() {
-        population.forEach(c -> c.takeAction(eventManager, this));
-        population.forEach(c -> c.evaluateAction(this));
-        removeDead();
+        populationMap.values().forEach(c -> c.chooseAction(eventManager, this));
+        populationMap.values().forEach(c -> c.performAction(eventManager, this));
+        populationMap.values().forEach(c -> c.evaluateAction(this));
         eventManager.process();
-        updateBestFitnessIndividual();
+        populationMap.values().forEach(c -> c.checkHealth(eventManager, this));
+
+        // removeDead();
+        //updateBestFitnessIndividual();
        // updateBreedingThreshold();
-        return !population.isEmpty();
+        return !populationMap.isEmpty();
     }
 
     private void updateBreedingThreshold() {
@@ -136,20 +145,26 @@ public class World {
 
     private void removeDead() {
         List<AbstractCreature> toRemove = new ArrayList<>();
-        for (AbstractCreature c : population) {
-            if (c.checkHealth(this)) toRemove.add(c);
+        for (AbstractCreature c : populationMap.values()) {
+            if (c.isDead()) toRemove.add(c);
         }
-        population.removeAll(toRemove);
+
+        toRemove.forEach(dead -> {
+            populationMap.remove(dead.getId());
+            prevPopulation.add(dead);
+        });
+
+        //population.removeAll(toRemove);
         //keep track of prev pop
-        prevPopulation.addAll(toRemove);
-        if (population.isEmpty()) System.out.println("Whole generation died.");
+        //prevPopulation.addAll(toRemove);
+        if (populationMap.isEmpty()) System.out.println("Whole generation died.");
     }
 
     private void updateBestFitnessIndividual() {
         AbstractCreature best = null;
         double highestFitness = bestFitness;
 
-        for (AbstractCreature c : population) {
+        for (AbstractCreature c : populationMap.values()) {
             if (c.getFitness() > highestFitness) {
                 highestFitness = c.getFitness();
                 best = c;
@@ -213,23 +228,26 @@ public class World {
 //        }
 //        return null;
 //    }
-        public List<AbstractCreature> findCreaturesById(List<Integer> id){
+        public List<AbstractCreature> findCreaturesById(List<Integer> ids){
             List<AbstractCreature> res = new ArrayList<>();
-            if(id==null) {return res;}
-            for (AbstractCreature c:population) {
-                if (id.contains(c.getId())) res.add(c);
+            if(ids==null) {return res;}
+            for (Integer id : ids) {
+                AbstractCreature c = populationMap.get(id);
+                if (c != null) {
+                    res.add(c);
+                }
             }
             return res;
         }
         public AbstractCreature findCreatureById(Integer id){
-           return population.stream().filter(c->c.getId()==id).findFirst().orElse(null);
+            return populationMap.get(id);
         }
 
     public boolean isWall(int x, int y) {
         return x == 0 || x == world.length - 1 || y == 0 || y == world.length - 1;
     }
     public int getPopulationSize(){
-        return population.size();
+        return populationMap.size();
     }
 
     public void addFood(int i, int j, Food f) {

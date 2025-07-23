@@ -1,5 +1,7 @@
-package io.github.evolutionary_algorithm;
+package io.github.evolutionary_algorithm.events;
 
+import io.github.evolutionary_algorithm.AbstractCreature;
+import io.github.evolutionary_algorithm.World;
 import io.github.neat.GAOperations;
 import io.github.neat.Genome;
 
@@ -8,8 +10,8 @@ public class BreedingEvent extends Event{
     private AbstractCreature parentY;
     private World w;
     public BreedingEvent(AbstractCreature x, AbstractCreature y, World w){
+        super(w,x);
         this.name = "breed";
-        this.parentX = x;
         this.parentY = y;
         this.w = w;
         System.out.println("New breeding event between" +x.getId()+ " and "+y.getId());
