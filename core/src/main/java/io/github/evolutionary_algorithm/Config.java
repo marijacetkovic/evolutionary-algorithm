@@ -37,9 +37,11 @@ public class Config {
     public static final double HERBIVORE_PROB = 0;
     public static final double CARNIVORE_PROB = 1;
     public static final int ATTACK_COST = 10;
-    public static final int HERBIVORE_ATTACK_STRENGTH = 1;
-    public static final int CARNIVORE_ATTACK_STRENGTH = 3;
 
+    public static final double CARNIVORE_ATTACK_DAMAGE = 30;
+    public static final double HERBIVORE_ATTACK_DAMAGE = 5;
+    public static final double CARNIVORE_ATTACK_COST = 5;
+    public static final double HERBIVORE_ATTACK_COST = 2;
 
     public static int INITIAL_HEALTH = 150;
     public static int MAX_HEALTH = 300;

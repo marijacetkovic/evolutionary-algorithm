@@ -82,7 +82,7 @@ public class Creature extends AbstractCreature {
         if (food.size() > 0) {
             for (Food f : food) {
                 if (canEat(f)) {
-                    eventManager.publish(new EatingEvent(this, i, j, world, f), true);
+                    eventManager.publish(new EatingEvent(this,world, f), true);
                     hasEaten = true;
                     return;
                 }
@@ -100,9 +100,12 @@ public class Creature extends AbstractCreature {
         }
     }
 
+    //checks if there is a chosen target and if its reachable
     void checkAttackAction(EventManager eventManager, World w, Creature targetCreature) {
-        if (targetCreature != null) {
-            eventManager.publish(new AttackEvent(this, (Creature)targetCreature, w), false);
+        //change to adapt the range
+        if (targetCreature != null &&
+            intendedTarget.getI() == this.i && intendedTarget.getJ() == this.j) {
+            eventManager.publish(new AttackEvent(this, targetCreature, w), false);
         }
     }
 
@@ -157,7 +160,8 @@ public class Creature extends AbstractCreature {
 
         for (Integer id : world.world[i][j].getOtherCreatures(this.id)) {
             AbstractCreature c = world.findCreatureById(id);
-            if (c != null && !c.isDead()) {
+            if (c != null //&& !c.isDead()
+             ) {
                 intendedTarget = (Creature) c;
                 break;
             }

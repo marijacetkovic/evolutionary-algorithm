@@ -127,11 +127,20 @@ public class World {
     }
 
     public boolean behave() {
+        //decide a potential action
         populationMap.values().forEach(c -> c.chooseAction(eventManager, this));
+
+        //queue all the events
         populationMap.values().forEach(c -> c.performAction(eventManager, this));
-        populationMap.values().forEach(c -> c.evaluateAction(this));
+
+        //Process all the events
         eventManager.process();
+
+        //check death due to starvation
         populationMap.values().forEach(c -> c.checkHealth(eventManager, this));
+
+        //Points for surviving this round
+        populationMap.values().forEach(c -> c.evaluateAction(this));
 
         // removeDead();
         //updateBestFitnessIndividual();
@@ -253,5 +262,8 @@ public class World {
     public void addFood(int i, int j, Food f) {
         food.add(f);
         world[i][j].addFood(f);
+    }
+    public EventManager getEventManager(){
+        return eventManager;
     }
 }

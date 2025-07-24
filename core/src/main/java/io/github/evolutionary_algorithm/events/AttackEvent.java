@@ -1,23 +1,18 @@
 package io.github.evolutionary_algorithm.events;
 
-import io.github.evolutionary_algorithm.Config;
 import io.github.evolutionary_algorithm.Creature;
 import io.github.evolutionary_algorithm.World;
 
 public class AttackEvent extends Event {
-    private final Creature attacker;
     private final Creature target;
-    private final World world;
 
     public AttackEvent(Creature attacker, Creature target, World world) {
         super(world, attacker);
-        this.attacker = attacker;
         this.target = target;
-        this.world = world;
     }
 
     public Creature getAttacker() {
-        return attacker;
+        return (Creature) initiator;
     }
 
     public Creature getTarget() {
@@ -28,8 +23,27 @@ public class AttackEvent extends Event {
         return world;
     }
 
+    // need to check if the target is still viable
     @Override
     public void process() {
-        initiator.setHealth(initiator.getHealth() - Config.ATTACK_COST);
+        if (initiator.isDead() || target.isDead()) {
+            return;
+        }
+
+        if (initiator.getI() != target.getI() || initiator.getJ() != target.getJ()) {
+            return;
+        }
+
+        initiator.setHealth((int) (initiator.getHealth() - initiator.getAttackCost()));
+
+        target.setHealth((int) (target.getHealth() - initiator.getAttackDamage()));
+
+        if (target.getHealth() <= 0) {
+            target.setHealth(0);
+            if (!target.isDead()) {
+                //<---- maybe easier to mark as dead and then remove everyone that died at the end
+                world.getEventManager().publish(new DeathEvent(target, world), true);
+            }
+        }
     }
 }

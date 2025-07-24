@@ -7,20 +7,18 @@ import io.github.evolutionary_algorithm.World;
 public class EatingEvent extends Event{
     private int i;
     private int j;
-    private Food f;
-    public EatingEvent(Creature c, int i, int j, World w, Food f){
-        super(w,c);
+    private Food food;
+    public EatingEvent(Creature c, World world, Food food){
+        super(world,c);
         name = "eat";
-        this.i = i;
-        this.j = j;
-        this.f = f;
+        this.food = food;
        //System.out.println("New eating event by" +c.getId()+"at "+i+" "+j);
     }
 
     @Override
     public void process() {
         //System.out.println("Creature type "+c.getDietType()+" consumed food type "+f.getCode());
-        world.removeFood(f);
-        initiator.consume(f);
+        world.removeFood(food);
+        initiator.consume(food);
     }
 }

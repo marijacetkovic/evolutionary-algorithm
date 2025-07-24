@@ -226,6 +226,26 @@ public abstract class AbstractCreature implements ICreature {
     public void setHealth(int i) {
         this.health = 0;
     }
+    public double getAttackDamage() {
+        switch (this.dietType) {
+            case CARNIVORE:
+                return CARNIVORE_ATTACK_DAMAGE;
+            case HERBIVORE:
+                return HERBIVORE_ATTACK_DAMAGE;
+            default:
+                return 0.0;
+        }
+    }
+    public double getAttackCost() {
+        switch (this.dietType) {
+            case CARNIVORE:
+                return CARNIVORE_ATTACK_COST;
+            case HERBIVORE:
+                return HERBIVORE_ATTACK_COST;
+            default:
+                return 0.0;
+        }
+    }
 
     abstract double[] getEnvironmentInput(World world);
     abstract void checkEatingAction(EventManager eventManager, World world);
