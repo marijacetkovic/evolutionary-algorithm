@@ -31,7 +31,7 @@ public class Config {
     public static boolean test = false;
 
     public static int numInputs = 51;
-    public static int numOutputs = 6;
+    public static int numOutputs = 7;
     public static int startNodeId = numInputs + numOutputs;
     public static final int TOURNAMENT_SIZE = 5;
     public static final double TOURNAMENT_RND_PROB = 0.03;

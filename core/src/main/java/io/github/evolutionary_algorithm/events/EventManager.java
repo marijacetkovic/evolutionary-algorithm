@@ -14,9 +14,10 @@ public class EventManager {
     }
 
 
-    public void publish(Event e, boolean processNow){
-        if(processNow) e.process();
-        else events.add(e);
+    public void publish(Event e){
+//        if(processNow) e.process();
+//        else
+          events.add(e);
     }
 
     public void process(){

@@ -127,22 +127,28 @@ public class World {
     }
 
     public boolean behave() {
-        //decide a potential action
-        populationMap.values().forEach(c -> c.chooseAction(eventManager, this));
+        List<AbstractCreature> copy = new ArrayList<>(populationMap.values());
 
+        //decide a potential action
+        copy.forEach(c -> c.chooseAction(eventManager, this));
+       // System.out.println("Every creature has chosen an action.");
         //queue all the events
-        populationMap.values().forEach(c -> c.performAction(eventManager, this));
+        copy.forEach(c -> c.performAction(eventManager, this));
+        //System.out.println("Every creature has published an event.");
 
         //Process all the events
         eventManager.process();
+        //System.out.println("Every action has been processed.");
 
         //check death due to starvation
-        populationMap.values().forEach(c -> c.checkHealth(eventManager, this));
+        copy.forEach(c -> c.checkHealth(eventManager, this));
+        //System.out.println("Every creature's health has been checked.");
 
         //Points for surviving this round
-        populationMap.values().forEach(c -> c.evaluateAction(this));
-
-        // removeDead();
+        copy.forEach(c -> c.evaluateAction(this));
+        //System.out.println("Every creature's action has been evaluated.");
+        //System.out.println("Population map "+populationMap.size());
+        removeDead();
         //updateBestFitnessIndividual();
        // updateBreedingThreshold();
         return !populationMap.isEmpty();
@@ -152,20 +158,20 @@ public class World {
         Config.breedingThreshold = bestFitnessCreature.getFitness() / 2;
     }
 
+
     private void removeDead() {
-        List<AbstractCreature> toRemove = new ArrayList<>();
-        for (AbstractCreature c : populationMap.values()) {
-            if (c.isDead()) toRemove.add(c);
+        Iterator<Map.Entry<Integer, AbstractCreature>> iterator = populationMap.entrySet().iterator();
+        while (iterator.hasNext()) {
+            AbstractCreature creature = iterator.next().getValue();
+            if (creature.isDead()) {
+                //rm from tile
+                remove(creature.getI(), creature.getJ(), creature.getId());
+                //keep track of prev pop
+                prevPopulation.add(creature);
+                //rm from map
+                iterator.remove();
+            }
         }
-
-        toRemove.forEach(dead -> {
-            populationMap.remove(dead.getId());
-            prevPopulation.add(dead);
-        });
-
-        //population.removeAll(toRemove);
-        //keep track of prev pop
-        //prevPopulation.addAll(toRemove);
         if (populationMap.isEmpty()) System.out.println("Whole generation died.");
     }
 

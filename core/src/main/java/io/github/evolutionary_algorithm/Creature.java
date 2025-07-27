@@ -82,7 +82,7 @@ public class Creature extends AbstractCreature {
         if (food.size() > 0) {
             for (Food f : food) {
                 if (canEat(f)) {
-                    eventManager.publish(new EatingEvent(this,world, f), true);
+                    eventManager.publish(new EatingEvent(this,world, f));
                     hasEaten = true;
                     return;
                 }
@@ -94,7 +94,7 @@ public class Creature extends AbstractCreature {
         potentialMates = world.checkMateTile(this);
         if(mateWithMe()){
             System.out.println("Creature " + id + " found mate " + mate.getId() + " at " + i + " " + j);
-            eventManager.publish(new BreedingEvent(this, mate, world),false);
+            eventManager.publish(new BreedingEvent(this, mate, world));
             mate.resetMates();
             this.resetMates();
         }
@@ -105,7 +105,7 @@ public class Creature extends AbstractCreature {
         //change to adapt the range
         if (targetCreature != null &&
             intendedTarget.getI() == this.i && intendedTarget.getJ() == this.j) {
-            eventManager.publish(new AttackEvent(this, targetCreature, w), false);
+            eventManager.publish(new AttackEvent(this, targetCreature, w));
         }
     }
 
@@ -132,9 +132,7 @@ public class Creature extends AbstractCreature {
 
         if (this.health <= 0) {
             this.health = 0;
-            if (!this.isDead()) {
-                eventManager.publish(new DeathEvent(this, world), true);
-            }
+            markDead();
         }
     }
     public void performAction(EventManager eventManager, World world) {
@@ -144,13 +142,11 @@ public class Creature extends AbstractCreature {
             case Config.ACTION_EAT -> checkEatingAction(eventManager, world);
             case Config.ACTION_ATTACK -> checkAttackAction(eventManager, world, intendedTarget);
             //case Config.ACTION_BREED -> checkBreedingAction(eventManager, world, intendedTarget);
-            default -> checkMovingAction(world, intendedAction);
+            default -> checkMovingAction(eventManager, world, intendedAction);
         }
     }
-    public void checkMovingAction(World world, int decision){
-        int i = this.i+actionOffset[decision][0];
-        int j = this.j+actionOffset[decision][1];
-        world.moveCreature(this,i,j);
+    public void checkMovingAction(EventManager eventManager, World world, int decision){
+        eventManager.publish(new MoveEvent(this, world, decision));
     }
 
     private void findPotentialTarget(World world) {
@@ -184,7 +180,7 @@ public class Creature extends AbstractCreature {
 
     //<--- CHECK
     public void consume(Food f){
-        health = (int) Math.max(MAX_HEALTH, health+f.getNutrition());
+        health = (int) Math.min(MAX_HEALTH, health+f.getNutrition());
     }
 
     //need to change fitness function

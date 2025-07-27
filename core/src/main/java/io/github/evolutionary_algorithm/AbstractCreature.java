@@ -1,6 +1,5 @@
 package io.github.evolutionary_algorithm;
 
-import io.github.evolutionary_algorithm.events.DeathEvent;
 import io.github.evolutionary_algorithm.events.EventManager;
 import io.github.neat.Genome;
 
@@ -28,14 +27,19 @@ public abstract class AbstractCreature implements ICreature {
     protected final int foodType;
     protected int health;
     protected Genome genome;
-    protected String[] actions = { "up", "left", "down", "right", "none", "eat", "attack"};
-    protected int[][] actionOffset = { {-1,0}, {0,-1}, {1,0}, {0,1}, {0,0}};
+    protected String[] actions = { "up", "left", "down", "right", "stay", "eat", "attack"};
+    public int[][] actionOffset = { {-1,0}, {0,-1}, {1,0}, {0,1}, {0,0}};
     protected boolean hasEaten;
     protected double fitness;
     protected double closestFoodDistance;
     protected double prevFoodDistance;
     protected int wallPenaltyCnt;
     protected int timeSinceEaten;
+    private boolean dead;
+
+    public void markDead() {
+        this.dead = true;
+    }
 
     public enum DietType {
         HERBIVORE,
@@ -55,6 +59,7 @@ public abstract class AbstractCreature implements ICreature {
         this.hasEaten = false;
         this.health = Config.INITIAL_HEALTH;
         this.fitness = 0;
+        this.dead = false;
         wallPenaltyCnt = 0;
         timeSinceEaten = 0;
         //System.out.println("Spawned a creature at positions " +i+","+j);
@@ -220,7 +225,7 @@ public abstract class AbstractCreature implements ICreature {
         return false;
     }
     public boolean isDead() {
-        return this.health == 0;
+        return this.dead;
     }
 
     public void setHealth(int i) {

@@ -42,7 +42,7 @@ public class AttackEvent extends Event {
             target.setHealth(0);
             if (!target.isDead()) {
                 //<---- maybe easier to mark as dead and then remove everyone that died at the end
-                world.getEventManager().publish(new DeathEvent(target, world), true);
+                target.markDead();
             }
         }
     }
