@@ -18,6 +18,8 @@ public class Genome implements Serializable {
     private double fitness;
     //no need to serialize
     private transient ArrayList<Node> topologicallySortedNodes;
+    private transient Map<Integer, List<Edge>> adjacencyList;
+
     private double adjustedFitness;
 
     public Genome(ArrayList<Node> nodeGenes, ArrayList<Edge> edgeGenes) {
@@ -46,7 +48,6 @@ public class Genome implements Serializable {
 
             Edge newEdge = new Edge(oldEdge, src, target);
             this.edgeGenes.add(newEdge);
-            this.edgeGenes.add(newEdge);
         }
 
         this.fitness = 0;
@@ -55,8 +56,8 @@ public class Genome implements Serializable {
         this.hiddenNodes = new ArrayList<>();
         this.outputNodes = new ArrayList<>();
         this.topologicallySortedNodes = null;
-
         updateStructure();
+
     }
     public Genome() {
         nodeGenes = new ArrayList<>();
@@ -82,22 +83,6 @@ public class Genome implements Serializable {
         Genome genome = new Genome();
         genome.initFirstIndividual();
         return genome;
-    }
-
-    public static Genome createFromSaved(Genome genome) {
-        genome.initSavedIndividual(genome);
-        return genome;
-    }
-    private void initSavedIndividual(Genome g) {
-        //ArrayList<Genome> genomes = loadGenomeList("best_genomes.ser");
-        //Genome g = genomes.get(r.nextInt(genomes.size()));
-        //if (Math.random()<0.5){
-           // mutate(g);
-        //}
-        this.nodeGenes = g.nodeGenes;
-        this.edgeGenes = g.edgeGenes;
-        updateStructure();
-        System.out.println(inputNodes.size()+" input nodes size");
     }
 
     public void topoSort() {
@@ -160,15 +145,15 @@ public class Genome implements Serializable {
     //prevent returning genes directly
 
     public ArrayList<Node> getNodeGenes() {
-        return nodeGenes;
+        return new ArrayList<>(nodeGenes);
     }
 
     public ArrayList<Edge> getEdgeGenes() {
-        return edgeGenes;
+        return new ArrayList<>(edgeGenes);
     }
 
     public void setNodeGenes(ArrayList<Node> nodeGenes) {
-        this.nodeGenes = nodeGenes;
+        this.nodeGenes = new ArrayList<>(nodeGenes);
         categorizeNodes();
     }
 
@@ -176,12 +161,14 @@ public class Genome implements Serializable {
         this.edgeGenes = edgeGenes;
     }
 
+    //<---- toposort can raise an exception here
     public void addNode(Node n){
         this.nodeGenes.add(n);
-        categorizeNodes();
+        updateStructure();
     }
     public void addEdge(Edge e){
         this.edgeGenes.add(e);
+        updateStructure();
     }
     public void analyzeWeights() {
         double avg = 0, min = 0, max = 0;
@@ -210,13 +197,14 @@ public class Genome implements Serializable {
     }
 
     public boolean areConnected(Node a, Node b) {
-        //should add adjacency list for this check
-        for (Edge e:edgeGenes) {
-            if ((e.getSourceNode().equals(a) && e.getTargetNode().equals(b))){
+        // get all edges from node a
+        List<Edge> fromA = adjacencyList.getOrDefault(a.getId(), Collections.emptyList());
+
+        for (Edge e : fromA) {
+            if (e.getTargetNode().equals(b)) {
                 return true;
             }
         }
-
         return false;
     }
 
@@ -256,8 +244,8 @@ public class Genome implements Serializable {
     }
 
     //choose max output
-    private int parseOutput(double[] output) {
-        int bestIndex = 0;
+    private int parseOutput(double[] probs) {
+        /*int bestIndex = 0;
         double bestValue = -1;
 
         for (int i = 0; i < output.length; i++) {
@@ -266,7 +254,14 @@ public class Genome implements Serializable {
                 bestIndex = i;
             }
         }
-        return bestIndex;
+        return bestIndex;*/
+        int output = 0;
+        for (int i = 1; i < probs.length; i++) {
+            if (probs[i] > probs[output]) {
+                output = i;
+            }
+        }
+        return output;
     }
 
 
@@ -307,7 +302,7 @@ public class Genome implements Serializable {
                 Edge edge = new Edge(input, output, weight, innovationID);
                 //System.out.println("Initial Edge: " + input.getId() + " -> " + output.getId() + " Weight: " + weight);
 
-                addEdge(edge);
+                this.edgeGenes.add(edge);
             }
         }
     }
@@ -336,6 +331,11 @@ public class Genome implements Serializable {
         for (int i = 0; i < outputNodes.size(); i++) {
             output[i] = outputNodes.get(i).getActivationValue();
         }
+        double[] rawOutputValues = outputNodes.stream()
+            .mapToDouble(Node::getActivationValue)
+            .toArray();
+
+        double[] probs = softmax(rawOutputValues);
 
         //System.out.print(this+"Network Output:");
 //        for (int i = 0; i < output.length; i++) {
@@ -346,17 +346,61 @@ public class Genome implements Serializable {
 //        }
         //System.out.println();
 
-        return output;
+        return probs;
     }
-    // get all outgoing edges from a given node
-    public List<Edge> getOutgoingEdges(Node node) {
-        List<Edge> outgoing = new ArrayList<>();
-        for (Edge e : this.edgeGenes) {
-            if (e.isEnabled() && e.getSourceNode().equals(node)) {
-                outgoing.add(e);
+    public static double[] softmax(double[] values) {
+        //find max
+        double max = values[0];
+        for (double v : values) {
+            if (v > max) {
+                max = v;
             }
         }
-        return outgoing;
+        //find exp -max
+        double sum = 0.0;
+        double[] expValues = new double[values.length];
+        for (int i = 0; i < values.length; i++) {
+            expValues[i] = Math.exp(values[i] - max);
+            sum += expValues[i];
+        }
+
+        //normalize by sum
+        for (int i = 0; i < expValues.length; i++) {
+            expValues[i] /= sum;
+        }
+
+        return expValues;
+    }
+
+    private void buildAdjacencyList() {
+        adjacencyList = new HashMap<>();
+        for (Edge edge : edgeGenes) {
+            int sourceNodeId = edge.getSourceNode().getId();
+            adjacencyList.computeIfAbsent(sourceNodeId, k -> new ArrayList<>()).add(edge);
+        }
+    }
+
+    // get all outgoing edges from a given node
+//    public List<Edge> getOutgoingEdges(Node node) {
+//        List<Edge> outgoing = new ArrayList<>();
+//        for (Edge e : this.edgeGenes) {
+//            if (e.isEnabled() && e.getSourceNode().equals(node)) {
+//                outgoing.add(e);
+//            }
+//        }
+//        return outgoing;
+//    }
+    public List<Edge> getOutgoingEdges(Node node) {
+        //get all outgoing edges or empty list
+        List<Edge> allOutgoing = adjacencyList.getOrDefault(node.getId(), Collections.emptyList());
+
+        List<Edge> enabledOutgoing = new ArrayList<>();
+        for (Edge e : allOutgoing) {
+            if (e.isEnabled()) {
+                enabledOutgoing.add(e);
+            }
+        }
+        return enabledOutgoing;
     }
 
     public double getFitness() {
@@ -373,6 +417,7 @@ public class Genome implements Serializable {
     public void updateStructure() {
         categorizeNodes();
         setupIncomingEdges();
+        buildAdjacencyList();
         topoSort();
     }
 

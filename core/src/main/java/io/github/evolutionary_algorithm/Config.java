@@ -16,9 +16,9 @@ public class Config {
     public static final double MIN_FOOD_LVL = 0.5;
     public static final int FOOD_LOCATION_BOUND = 4;
     public static final int FOOD_QUADRANT_BOUND = 2;
-    public static final int FOOD_PHASE_END1 = 5 ;
-    public static final int FOOD_PHASE_END2 = 17 ;
-    public static final int FOOD_PHASE_END3 = 25 ;
+    public static final int FOOD_PHASE_END1 = 0 ;
+    public static final int FOOD_PHASE_END2 = 0 ;
+    public static final int FOOD_PHASE_END3 = 0 ;
 
 
     public static final int FOOD_CODE = -2;
@@ -33,15 +33,15 @@ public class Config {
     public static final int FOOD_CODE_MEAT = 1;
     public static final double PLANT_FOOD_NUTRITION = 10;
     public static final double MEAT_FOOD_NUTRITION = 10;
-    public static final double PLANT_SPAWN_PROBABILITY = 0.1;
+    public static final double PLANT_SPAWN_PROBABILITY = 0.9;
     public static final double HERBIVORE_PROB = 0;
     public static final double CARNIVORE_PROB = 1;
-    public static final int ATTACK_COST = 10;
 
-    public static final double CARNIVORE_ATTACK_DAMAGE = 30;
+    public static final double CARNIVORE_ATTACK_DAMAGE = 130;
     public static final double HERBIVORE_ATTACK_DAMAGE = 5;
-    public static final double CARNIVORE_ATTACK_COST = 5;
+    public static final double CARNIVORE_ATTACK_COST = 20;
     public static final double HERBIVORE_ATTACK_COST = 2;
+    public static final int ATTACK_RANGE = 1;
 
     public static int INITIAL_HEALTH = 150;
     public static int MAX_HEALTH = 300;
@@ -57,6 +57,7 @@ public class Config {
     public static final int FOOD_REWARD = 10;
     public static final int ACTION_EAT = 5;
     public static final int ACTION_ATTACK = 6;
+    public static String[] actions = { "up", "left", "down", "right", "stay", "eat", "attack"};
     public static Phase currentPhase = Phase.EVOLUTIONARY;
     public enum Phase {
         EVOLUTIONARY,

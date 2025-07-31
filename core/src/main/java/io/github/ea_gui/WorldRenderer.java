@@ -12,6 +12,8 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import io.github.evolutionary_algorithm.*;
 
 import static io.github.ea_gui.Config.*;
+import static io.github.evolutionary_algorithm.AbstractCreature.DietType.CARNIVORE;
+import static io.github.evolutionary_algorithm.AbstractCreature.DietType.HERBIVORE;
 import static io.github.evolutionary_algorithm.Config.FOOD_CODE_MEAT;
 import static io.github.evolutionary_algorithm.Config.FOOD_CODE_PLANT;
 
@@ -19,7 +21,9 @@ public class WorldRenderer {
     private final EvolutionManager evolutionManager;
     private World world;
     private final Texture tileTexture;
-    private final Texture creatureTexture;
+    private final Texture creatureTexture0;
+    private final Texture creatureTexture1;
+
     private final Texture foodTexture0;
     private final Texture foodTexture1;
 
@@ -40,7 +44,9 @@ public class WorldRenderer {
         this.padding = 1/100f;
         this.evolutionManager = evolutionManager;
         tileTexture = new Texture(Gdx.files.internal(TILE_TEXTURE));
-        creatureTexture = new Texture(Gdx.files.internal(CREATURE_TEXTURE));
+        creatureTexture0 = new Texture(Gdx.files.internal(CREATURE_TEXTURE_0));
+        creatureTexture1 = new Texture(Gdx.files.internal(CREATURE_TEXTURE_1));
+
         foodTexture0 = new Texture(Gdx.files.internal(FOOD_TEXTURE_0));
         foodTexture1 = new Texture(Gdx.files.internal(FOOD_TEXTURE_1));
         String mapFilePath = getMapFilePath(this.n);
@@ -122,6 +128,13 @@ public class WorldRenderer {
                 for (Integer creatureId : tile.getCreatures()) {
                     AbstractCreature c = world.findCreatureById(creatureId);
                     if (c != null) {
+                        Texture creatureTexture = null;
+
+                        if (c.getDietType() == HERBIVORE) {
+                            creatureTexture = creatureTexture0;
+                        } else if (c.getDietType() == CARNIVORE) {
+                            creatureTexture = creatureTexture1;
+                        }
                         game.batch.draw(creatureTexture, x, y, tileSize, tileSize);
                         //game.font.setColor(Color.GREEN);
                         //game.font.draw(game.batch, c.getHealth() + "", x + tileSize / 5, y + tileSize / 5);
@@ -162,7 +175,8 @@ public class WorldRenderer {
     }
     public void dispose() {
         tileTexture.dispose();
-        creatureTexture.dispose();
+        creatureTexture0.dispose();
+        creatureTexture1.dispose();
         foodTexture0.dispose();
         foodTexture1.dispose();
         map.dispose();

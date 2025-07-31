@@ -27,7 +27,6 @@ public abstract class AbstractCreature implements ICreature {
     protected final int foodType;
     protected int health;
     protected Genome genome;
-    protected String[] actions = { "up", "left", "down", "right", "stay", "eat", "attack"};
     public int[][] actionOffset = { {-1,0}, {0,-1}, {1,0}, {0,1}, {0,0}};
     protected boolean hasEaten;
     protected double fitness;
@@ -229,7 +228,7 @@ public abstract class AbstractCreature implements ICreature {
     }
 
     public void setHealth(int i) {
-        this.health = 0;
+        this.health = i;
     }
     public double getAttackDamage() {
         switch (this.dietType) {

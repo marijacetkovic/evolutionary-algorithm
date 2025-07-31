@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.util.*;
 
 import static io.github.evolutionary_algorithm.Config.METRICS_FILE;
+import static io.github.evolutionary_algorithm.Config.actions;
 
 public class MetricsManager {
 
@@ -27,6 +28,17 @@ public class MetricsManager {
     // population diversity
     private final List<Integer> speciesCountHistory = new ArrayList<>();
 
+    private final List<Double> avgHerbivoreFitnessHistory = new ArrayList<>();
+    private final List<Double> avgCarnivoreFitnessHistory = new ArrayList<>();
+    private final List<Double> maxHerbivoreFitnessHistory = new ArrayList<>();
+    private final List<Double> maxCarnivoreFitnessHistory = new ArrayList<>();
+
+
+    Map<Integer, Integer> actionCounts = new HashMap<>();
+    private int totalAttacks = 0;
+    private int successfulAttacks = 0;
+    private int genTotalAttacks = 0;
+    private int genSuccessfulAttacks = 0;
     private MetricsManager() {}
 
     public static MetricsManager getInstance() {
@@ -36,15 +48,20 @@ public class MetricsManager {
         return instance;
     }
 
-    public void log(ArrayList<Genome> population, ArrayList<Species> speciesList) {
+    public void log(ArrayList<AbstractCreature> population, ArrayList<Species> speciesList) {
         if (population.isEmpty()) {
             System.err.println("Cannot calculate metrics on empty population.");
             return;
         }
+        ArrayList<Genome> genomePopulation = new ArrayList<>();
 
-        recordPerformance(population);
-        recordComplexity(population);
+        for (AbstractCreature creature : population) {
+            genomePopulation.add(creature.getGenome());
+        }
+        recordPerformance(genomePopulation);
+        recordComplexity(genomePopulation);
         recordDiversity(speciesList);
+        recordDietStatistics(population);
     }
 
     private void recordPerformance(ArrayList<Genome> population) {
@@ -82,6 +99,46 @@ public class MetricsManager {
         speciesCountHistory.add(speciesList.size());
     }
 
+    private void recordDietStatistics(Collection<AbstractCreature> currentCreatures) {
+        int herbivoreCount = 0;
+        int carnivoreCount = 0;
+        double totalHerbivoreFitness = 0;
+        double totalCarnivoreFitness = 0;
+        double maxHerbivoreFitness = 0;
+        double maxCarnivoreFitness = 0;
+
+        for (AbstractCreature creature : currentCreatures) {
+            if (creature.getDietType() == AbstractCreature.DietType.HERBIVORE) {
+                herbivoreCount++;
+                totalHerbivoreFitness += creature.getFitness();
+                double fitness = creature.getFitness();
+                if (fitness > maxHerbivoreFitness) {
+                    maxHerbivoreFitness = fitness;
+                }
+            } else {
+                carnivoreCount++;
+                double fitness = creature.getFitness();
+                totalCarnivoreFitness += fitness;
+                if (fitness > maxCarnivoreFitness) {
+                    maxCarnivoreFitness = fitness;
+                }
+
+            }
+        }
+        double avgHerbivoreFitness = herbivoreCount > 0 ? totalHerbivoreFitness / herbivoreCount : 0.0;
+        double avgCarnivoreFitness = carnivoreCount > 0 ? totalCarnivoreFitness / carnivoreCount : 0.0;
+
+        avgHerbivoreFitnessHistory.add(avgHerbivoreFitness);
+        avgCarnivoreFitnessHistory.add(avgCarnivoreFitness);
+        maxHerbivoreFitnessHistory.add(maxHerbivoreFitness);
+        maxCarnivoreFitnessHistory.add(maxCarnivoreFitness);
+
+        System.out.println("Average Herbivore Fitness: "+avgHerbivoreFitness+" Average Carnivore Fitness: " +avgCarnivoreFitness);
+        System.out.println("Max Herbivore Fitness: " + maxHerbivoreFitness + " Max Carnivore Fitness: " + maxCarnivoreFitness);
+
+    }
+
+
     //this should be changed
     private double computeNetworkDensity(Genome genome) {
         int n = genome.getNodeGenes().size();
@@ -111,9 +168,51 @@ public class MetricsManager {
         }
     }
 
-    public void printSummary() {
+    public void updateActionCounts(int actionID){
+        actionCounts.put(actionID, actionCounts.getOrDefault(actionID, 0) + 1);
     }
 
 
+    public void printSummary() {
+        printActionData();
+        printAttackSummary();
+    }
 
-  }
+    private void printActionData(){
+        int total = 0;
+        for (int count : actionCounts.values()) {
+            total += count;
+        }
+
+        for (int action : actionCounts.keySet()) {
+            int count = actionCounts.get(action);
+            double percent = 100.0 * count / total;
+            System.out.println("Action " + actions[action] + ": " + percent);
+        }
+
+        actionCounts = new HashMap<>();
+    }
+
+    private void printAttackSummary() {
+        double percentThisGen = genTotalAttacks > 0 ? 100.0 * genSuccessfulAttacks / genTotalAttacks : 0;
+        System.out.println("Gen Attacks: " + genSuccessfulAttacks + "/" + genTotalAttacks + " " + percentThisGen + "%");
+
+        double percentAllTime = totalAttacks > 0 ? 100.0 * successfulAttacks / totalAttacks : 0;
+        System.out.println("Total Attacks: " + successfulAttacks + "/" + totalAttacks + " " + percentAllTime + "%");
+
+        this.genTotalAttacks = 0;
+        this.genSuccessfulAttacks = 0;
+    }
+
+    public void saveAttack() {
+        totalAttacks++;
+        genTotalAttacks++;
+    }
+
+    public void saveSuccesfulAttack() {
+        successfulAttacks++;
+        genSuccessfulAttacks++;
+    }
+
+
+}

@@ -24,7 +24,7 @@ public class GAOperations {
         if (childInvalid) {
             System.out.println("Invalid child, replaced with mutated fitter parent.");
             Genome parent = p1.getAdjustedFitness() > p2.getAdjustedFitness() ? p1 : p2;
-            child = new Genome(parent.getNodeGenes(), parent.getEdgeGenes());
+            child = new Genome(parent);
             mutate(child);
             child.updateStructure();
         }
@@ -43,6 +43,7 @@ public class GAOperations {
         }
         if (r.nextDouble() < STRUCTURAL_MUTATION_RATE) {
             mutateStructure(g);
+            //g.updateStructure();
         }
     }
     public static void addEdgeMutation(Genome g){
@@ -109,13 +110,12 @@ public class GAOperations {
 
         if (prob < ADD_EDGE_MUTATION_PROB) {
             addEdgeMutation(g);
-        }
-        if (prob < ADD_NODE_MUTATION_PROB) {
+        } else if (prob < ADD_NODE_MUTATION_PROB + ADD_EDGE_MUTATION_PROB) {
             addNodeMutation(g);
         }
-        if (prob < TOGGLE_CONN_MUTATION_PROB) {
+        /*else {
             toggleConnection(g);
-        }
+        }*/
     }
     private static void toggleConnection(Genome g) {
         if (g.getEdgeGenes().isEmpty()) return;

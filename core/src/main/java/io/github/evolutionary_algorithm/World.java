@@ -150,7 +150,7 @@ public class World {
         //System.out.println("Population map "+populationMap.size());
         removeDead();
         //updateBestFitnessIndividual();
-       // updateBreedingThreshold();
+        // updateBreedingThreshold();
         return !populationMap.isEmpty();
     }
 
@@ -165,7 +165,10 @@ public class World {
             AbstractCreature creature = iterator.next().getValue();
             if (creature.isDead()) {
                 //rm from tile
-                remove(creature.getI(), creature.getJ(), creature.getId());
+                int i = creature.getI();
+                int j = creature.getJ();
+                remove(i, j, creature.getId());
+                addFood(FoodSpawnManager.createMeatFood(i,j));
                 //keep track of prev pop
                 prevPopulation.add(creature);
                 //rm from map
@@ -265,9 +268,9 @@ public class World {
         return populationMap.size();
     }
 
-    public void addFood(int i, int j, Food f) {
+    public void addFood(Food f) {
         food.add(f);
-        world[i][j].addFood(f);
+        world[f.getI()][f.getJ()].addFood(f);
     }
     public EventManager getEventManager(){
         return eventManager;

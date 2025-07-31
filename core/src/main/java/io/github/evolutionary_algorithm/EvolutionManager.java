@@ -62,7 +62,8 @@ public class EvolutionManager {
         world.spawnCreatures(nextGen);
         foodSpawnManager.spawnFood(NUM_FOOD, currentGeneration);
         neatManager.getSpeciesManager().getSpeciesStatistics();
-        metricsManager.log(nextGen,neatManager.getSpeciesManager().getSpeciesList());
+        metricsManager.log(currentCreatures,neatManager.getSpeciesManager().getSpeciesList());
+        metricsManager.printSummary();
         boolean endEvolution = ++currentGeneration >= EVOLUTION_GEN;
         if (endEvolution) {
             transitionToAuto();
@@ -118,6 +119,7 @@ public class EvolutionManager {
             initFirstGeneration();
             return;
         }
+
         ArrayList<Genome> initialPopulation = neatManager.createFromSaved(loadedGenomes, NUM_CREATURES);
 
         System.out.println("Species number"+neatManager.getSpeciesManager().getSpeciesList().size());

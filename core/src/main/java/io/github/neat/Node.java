@@ -79,7 +79,8 @@ public class Node implements Serializable {
         if (nodeType == NodeType.HIDDEN) {
             activationValue = leakyRelu(rawValue);
         } else if (nodeType == NodeType.OUTPUT) {
-            activationValue = sigmoid(rawValue);
+            //activationValue = sigmoid(rawValue);
+            activationValue = rawValue;
         }
     }
 

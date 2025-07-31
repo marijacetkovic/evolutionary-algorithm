@@ -12,6 +12,8 @@ public class INManager implements Serializable {
     private final Map<String, Integer> edgeINMap = new HashMap<>();
     private final Map<Integer, Integer> nodeINMap = new HashMap<>();
     private int lastInnovationId = 0;
+    private transient int newInnovations = 0;
+    private transient int reusedInnovations= 0;
     private int lastNodeId = Config.startNodeId;
 
     private INManager() {
@@ -21,7 +23,10 @@ public class INManager implements Serializable {
         if (instance == null) {
             try {
                 loadFromFile("inmanager_state.ser");
-            } catch (Exception e) {instance = new INManager();}
+            } catch (Exception e) {
+                System.out.println("Warning: New instance of INManager has been created.");
+                instance = new INManager();
+            }
         }
         return instance;
     }
@@ -38,9 +43,11 @@ public class INManager implements Serializable {
         String edgeKey = sourceNode.getId() + "-" + targetNode.getId();
 
         if (edgeINMap.containsKey(edgeKey)) {
+            reusedInnovations++;
             return edgeINMap.get(edgeKey);
         } else {
             edgeINMap.put(edgeKey, lastInnovationId);
+            newInnovations++;
             return lastInnovationId++;
         }
     }
@@ -54,6 +61,8 @@ public class INManager implements Serializable {
     }
     public static void saveToFile(String filename){
         getInstance();
+        System.out.println("Reused innovations"+instance.reusedInnovations);
+        System.out.println("New innovations"+instance.newInnovations);
         try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(filename))) {
             out.writeObject(instance);
             System.out.println(
@@ -63,6 +72,7 @@ public class INManager implements Serializable {
             //printEdgeInnovations();
             //printNodeInnovations();
         } catch (IOException e) {
+            System.err.println("Failed to save INManager state.");
             throw new RuntimeException(e);
         }
     }
@@ -72,10 +82,16 @@ public class INManager implements Serializable {
             instance = (INManager) in.readObject();
             System.out.println(
                 "Current lastInnovationId: " + instance.lastInnovationId +
-                    " | lastNodeId: " + instance.lastNodeId
+                    " | lastNodeId: " + instance.lastNodeId+
+                    " | newInnovations" + instance.newInnovations
             );
+
+
+            //printNodeInnovations();
+            //printEdgeInnovations();
             System.out.println("INManager successfully loaded from file.");
         } catch (IOException | ClassNotFoundException e) {
+            System.err.println(e.getMessage());
             throw new RuntimeException(e);
         }
     }

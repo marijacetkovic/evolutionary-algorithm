@@ -64,7 +64,7 @@ public class FoodSpawnManager {
                     break;
             }
             Food f = createRandomFood(i,j);
-            world.addFood(i,j,f);
+            world.addFood(f);
         }
     }
 
@@ -73,10 +73,22 @@ public class FoodSpawnManager {
 
         //control spawn by prob
         if (prob < Config.PLANT_SPAWN_PROBABILITY) {
-            return new Food(i, j, Config.PLANT_FOOD_NUTRITION, Config.FOOD_CODE_PLANT);
+            return createPlantFood(i,j);
         } else {
-            return new Food(i, j, Config.MEAT_FOOD_NUTRITION, Config.FOOD_CODE_MEAT);
+            return createMeatFood(i,j);
         }
     }
 
+    public static Food createPlantFood(int i, int j) {
+        return new Food(i, j, PLANT_FOOD_NUTRITION, FOOD_CODE_PLANT);
+    }
+
+
+    public static Food createMeatFood(int i, int j) {
+        return new Food(i, j, MEAT_FOOD_NUTRITION, FOOD_CODE_MEAT);
+    }
+
+
 }
+
+

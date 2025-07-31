@@ -40,7 +40,7 @@ public class Creature extends AbstractCreature {
 
             //maybe can remove this
             // wall detection
-            inputs[idx++] = world.isWall(x, y) ? 0 : 1;
+            inputs[idx++] = world.isWall(x, y) ? 1 : 0;
 
             // food presence
             inputs[idx++] = (world.isWithinBounds(x, y) && world.world[x][y].hasPlantFood()) ? 1 : 0;
@@ -71,7 +71,7 @@ public class Creature extends AbstractCreature {
         }
 
         // normalized food dist - <--- Maybe not needed
-        inputs[idx++] = Math.min(1, dist / (world.getSize()/2.0));
+        //inputs[idx++] = Math.min(1, dist / (world.getSize()/2.0));
 
         return inputs;
     }
@@ -114,8 +114,9 @@ public class Creature extends AbstractCreature {
         double[] input = this.getEnvironmentInput(world);
         //double[] input = getRndInput();
         this.intendedAction = genome.calcPropagation(input);
+        MetricsManager.getInstance().updateActionCounts(intendedAction);
         this.intendedTarget = null;
-        //System.out.println("Individuals decision to move: "+actions[decision]);
+        //System.out.println("Individuals decision to move: "+actions[intendedAction]);
 
         if (intendedAction == Config.ACTION_ATTACK) {
             findPotentialTarget(world);
